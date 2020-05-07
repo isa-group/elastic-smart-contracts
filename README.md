@@ -1,1 +1,0 @@
-# elastic-smart-contracts
