@@ -10,7 +10,7 @@ class Street_network extends Contract {
 
     async initLedger(ctx) {
         console.info('============= START : Initialize Ledger ===========');
-        const detections = [
+        /*const detections = [
             {
                 streetId: 1,
                 detectionDateTime: 1588698495684,
@@ -120,7 +120,7 @@ class Street_network extends Contract {
             detections[i].docType = 'detection';
             await ctx.stub.putState('DETECTION' + i, Buffer.from(JSON.stringify(detections[i])));
             console.info('Added <--> ', detections[i]);
-        }
+        }*/
         console.info('============= END : Initialize Ledger ===========');
     }
 
@@ -180,10 +180,20 @@ class Street_network extends Contract {
             detection.direction = 'DESCENDENT';
         }
         await ctx.stub.putState(detectionNumber, Buffer.from(JSON.stringify(detection)));
+
+        let tradeEvent = {
+            detectionId: detectionNumber,
+            type: 'createDetection'
+
+        };
+        await ctx.stub.setEvent('TradeEvent', Buffer.from(JSON.stringify(tradeEvent)));
     }
     
-    async calculate(ctx, calculationNumber, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate, toDate) {
+    async calculate(ctx, calculationNumber, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate) {
+        let toDate = Date.now();
+
         const detections = await this.queryCalculate(ctx, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate, toDate);
+        
         let carsPerSecond = ((JSON.parse(detections.toString()).length *1000) /  (toDate - fromDate)).toFixed(3);
         
         const carFlow = {
