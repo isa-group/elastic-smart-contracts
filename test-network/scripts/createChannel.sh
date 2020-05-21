@@ -139,6 +139,7 @@ createChannel
 ## Join all the peers to the channel
 echo "Join Org1 peers to the channel..."
 joinChannel 1
+joinChannel 3
 echo "Join Org2 peers to the channel..."
 joinChannel 2
 
