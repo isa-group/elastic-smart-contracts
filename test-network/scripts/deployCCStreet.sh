@@ -295,7 +295,7 @@ chaincodeInvokeInit 1 2 3
 sleep 10
 
 # Query chaincode on peer0.org1
-echo "Querying chaincode on peer0.org1..."
+echo "Querying chaincode on peer1.org1..."
 chaincodeQuery 3
 
 exit 0

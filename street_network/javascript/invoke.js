@@ -21,16 +21,16 @@ async function main() {
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const identity = await wallet.get('appUser');
+        const identity = await wallet.get('admin');
         if (!identity) {
-            console.log('An identity for the user "appUser" does not exist in the wallet');
+            console.log('An identity for the user "admin" does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'appUser', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -38,20 +38,16 @@ async function main() {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
-
-
-
         // Submit the specified transaction.
-        // await contract.submitTransaction('calculate', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698485684, 1588698495684);
+        // 
         
-        await wait();
 
+        const time = await Date.now();
+        //await contract.submitTransaction('calculateFlow', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698495684);
         await contract.submitTransaction('createDetection', 1, 'DETECTION' + Math.floor(Math.random() *1000), 1, 1, 1, 'ascendent');
- 
-        
 
         
-        console.log('Transaction has been submitted');
+        console.log('Transaction has been submitted with an execution time of '+ (Date.now() - time)/1000 + ' seconds');
 
 
         //await contract.removeContractListener(listener);

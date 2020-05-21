@@ -181,15 +181,15 @@ class Street_network extends Contract {
         }
         await ctx.stub.putState(detectionNumber, Buffer.from(JSON.stringify(detection)));
 
-        let tradeEvent = {
+        let event = {
             detectionId: detectionNumber,
             type: 'createDetection'
 
         };
-        await ctx.stub.setEvent('TradeEvent', Buffer.from(JSON.stringify(tradeEvent)));
+        await ctx.stub.setEvent('DetectionEvent', Buffer.from(JSON.stringify(event)));
     }
     
-    async calculate(ctx, calculationNumber, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate) {
+    async calculateFlow(ctx, calculationNumber, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate) {
         let toDate = Date.now();
 
         const detections = await this.queryCalculate(ctx, streetId, direction, detectionKilometerMax, detectionKilometerMin, fromDate, toDate);
@@ -212,6 +212,13 @@ class Street_network extends Contract {
         };
 
         await ctx.stub.putState(calculationNumber, Buffer.from(JSON.stringify(carFlow)));
+
+        let event = {
+            numberDetections: (JSON.parse(detections.toString()).length),
+            type: 'calculateFlow'
+
+        };
+        await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
     }
     
     async queryDetectionsInRange(ctx,startDate, endDate) {
