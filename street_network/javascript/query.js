@@ -30,7 +30,7 @@ async function main() {
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: 'sensor1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
@@ -39,9 +39,10 @@ async function main() {
         const contract = network.getContract('street_network');
 
         // Evaluate the specified transaction.
-        //const result = await contract.evaluateTransaction('queryAllDetections');
-        const result = await contract.evaluateTransaction('queryAllFlows');
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        const result = await contract.evaluateTransaction('queryAllDetections');
+        //const result = await contract.evaluateTransaction('queryAllFlows');
+        console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
+        return JSON.parse(result.toString()).length;
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

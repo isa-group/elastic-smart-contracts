@@ -127,7 +127,7 @@ class Street_network extends Contract {
 
     async queryAllDetections(ctx) {
         const startKey = 'DETECTION0';
-        const endKey = 'DETECTION9999';
+        const endKey = 'DETECTION99999999999999999';
         const allResults = [];
         for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
@@ -145,7 +145,7 @@ class Street_network extends Contract {
     }
     async queryAllFlows(ctx) {
         const startKey = 'CARFLOW0';
-        const endKey = 'CARFLOW999';
+        const endKey = 'CARFLOW9999999999999999';
         const allResults = [];
         for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');

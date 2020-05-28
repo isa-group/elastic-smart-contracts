@@ -4,16 +4,114 @@
 
 'use strict';
 
+
+const yargs = require('yargs');
 const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
+const argv = yargs
+    .command('launchDetections', 'Generate detections during the given time', {
+        numberSensors: {
+            description: 'number of sensors detecting at the same time',
+            alias: 'n',
+            type: 'number',
+        },
+        minutes: {
+            description: 'minutes of execution',
+            alias: 'm',
+            type: 'number',
+        }
+      }
+    )
+.help().alias('help', 'h').argv;
 
-async function main() {
+
+async function main(numberSensor, numberDetection, numberSensors) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         let ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'wallet');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the user.
+        const identity = await wallet.get('sensor'+ numberSensor);
+        if (!identity) {
+            console.log(`An identity for the user "sensor${numberSensor}" does not exist in the wallet`);
+            console.log('Run the registerUser.js application before retrying');
+            return;
+        }
+
+        // Create a new gateway for connecting to our peer node.
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: 'sensor'+ numberSensor, discovery: { enabled: true, asLocalhost: true } });
+
+        // Get the network (channel) our contract is deployed to.
+        const network = await gateway.getNetwork('mychannel');
+
+        // Get the contract from the network.
+        const contract = network.getContract('street_network');
+
+        // Submit the specified transaction.
+        // 
+
+
+        //const detections = await contract.evaluateTransaction('queryAllDetections');
+        //await contract.submitTransaction('calculateFlow', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698495684);
+        let count = numberDetection;
+        let execTimes = [];
+        let totalTime = 0;
+        let csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,DETECTIONS_PER_SECOND,TOTAL_TIME,AVG_TIME,SD_TIME\n";
+        let interval = setInterval(() => {
+            let totalBeginHR = process.hrtime();
+            let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
+
+            contract.submitTransaction('createDetection', 1, 'DETECTION' + count, 1, 1, 1, 'ascendent').then(() => {
+                let totalEndHR = process.hrtime()
+                let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
+                let totalDuration = (totalEnd - totalBegin) / 1000;
+                totalTime += totalDuration;
+                execTimes.push(totalDuration);
+            console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
+            });
+            count = count+ argv.numberSensors;
+        }, 1000);
+        
+        setTimeout(() => {
+            clearInterval(interval);
+            setTimeout(() => {
+                gateway.disconnect();
+                console.log("Disconnected");
+                console.log(execTimes.length);
+                csvBody += `${numberSensors},${execTimes.length},${execTimes.length/(argv.minutes*60)},${argv.minutes*60},${totalTime/execTimes.length}\n`;
+                let datasetFile = "./results/" +new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+ 
+                fs.writeFileSync(datasetFile, csvBody,'utf8');
+            }, 5000);
+        }, argv.minutes*60000 + 100);
+
+
+        //await contract.removeContractListener(listener);
+
+        // Disconnect from the gateway.
+        //await contract.removeContractListener(listener);
+
+
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        process.exit(1);
+    }
+}
+
+async function getDetections() {
+    try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
@@ -38,38 +136,29 @@ async function main() {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
-        // Submit the specified transaction.
-        // 
-        
-
-        const time = await Date.now();
-        //await contract.submitTransaction('calculateFlow', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698495684);
-        await contract.submitTransaction('createDetection', 1, 'DETECTION' + Math.floor(Math.random() *1000), 1, 1, 1, 'ascendent');
-
-        
-        console.log('Transaction has been submitted with an execution time of '+ (Date.now() - time)/1000 + ' seconds');
-
-
-        //await contract.removeContractListener(listener);
-
-        // Disconnect from the gateway.
-        //await contract.removeContractListener(listener);
-        await gateway.disconnect();
-        await console.log("Disconnected")
+        // Evaluate the specified transaction.
+        const result = await contract.evaluateTransaction('queryAllDetections');
+        let a = JSON.parse(result.toString()).length;
+        return a;
 
     } catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
+        console.error(`Failed to evaluate transaction: ${error}`);
         process.exit(1);
     }
 }
 
-main();
+if (argv._.includes('launchDetections')) {
 
-async function wait() {
-    let promise = new Promise ((res, rej) => {
-        setTimeout(() => res("caracola"), 3000);
+
+    if(!fs.existsSync("./results")){
+      fs.mkdirSync("./results");
+    }
+    getDetections().then(res => {
+        for (let i = 1; i <= argv.numberSensors; i++) {
+            main(i, res + i, argv.numberSensors);
+            
+        }
+
     });
-    let result = await promise;
-    return result;
-
 }
+

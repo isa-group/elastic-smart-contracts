@@ -57,7 +57,7 @@ async function main() {
                     console.log("CalculateFlow event detected, waiting 10 seconds to launch transaction");
                     setTimeout(() => {
                         console.log("Launching calculateFlow transaction");
-                        calculateFlow();
+                        calculateFlow(1);
                     }, 10000); 
 
                 }
@@ -142,7 +142,7 @@ async function createDetection() {
     }
 }
 
-async function calculateFlow() {
+async function calculateFlow(numberHours) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -175,7 +175,8 @@ async function calculateFlow() {
         const time = await Date.now();
 
         // Submit the specified transaction.
-        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ Math.floor(Math.random() *1000), 2, "ASCENDENT", 7, 7, 1588698495684);
+        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ Math.floor(Math.random() *1000), 2, "ASCENDENT", 7, 7, time - (3600000* numberHours));
+        
         console.log('Transaction has been submitted with an execution time of '+ (Date.now() - time)/1000 + ' seconds');
  
         
