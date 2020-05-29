@@ -39,10 +39,11 @@ async function main() {
         const contract = network.getContract('street_network');
 
         // Evaluate the specified transaction.
-        const result = await contract.evaluateTransaction('queryAllDetections');
+        //const result = await contract.evaluateTransaction('queryAllDetections');
         //const result = await contract.evaluateTransaction('queryAllFlows');
-        console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
-        return JSON.parse(result.toString()).length;
+        const result = await contract.evaluateTransaction('queryCalculate', 0, 99999999999999999999999999999999);
+        //console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

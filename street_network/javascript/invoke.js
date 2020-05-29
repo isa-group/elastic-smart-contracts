@@ -63,9 +63,7 @@ async function main(numberSensor, numberDetection, numberSensors) {
         //const detections = await contract.evaluateTransaction('queryAllDetections');
         //await contract.submitTransaction('calculateFlow', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698495684);
         let count = numberDetection;
-        let execTimes = [];
-        let totalTime = 0;
-        let csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,DETECTIONS_PER_SECOND,TOTAL_TIME,AVG_TIME,SD_TIME\n";
+
         let interval = setInterval(() => {
             let totalBeginHR = process.hrtime();
             let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
@@ -74,11 +72,10 @@ async function main(numberSensor, numberDetection, numberSensors) {
                 let totalEndHR = process.hrtime()
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                 let totalDuration = (totalEnd - totalBegin) / 1000;
-                totalTime += totalDuration;
-                execTimes.push(totalDuration);
+
             console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
             });
-            count = count+ argv.numberSensors;
+            count = count+ numberSensors;
         }, 1000);
         
         setTimeout(() => {
@@ -86,17 +83,13 @@ async function main(numberSensor, numberDetection, numberSensors) {
             setTimeout(() => {
                 gateway.disconnect();
                 console.log("Disconnected");
-                console.log(execTimes.length);
-                csvBody += `${numberSensors},${execTimes.length},${execTimes.length/(argv.minutes*60)},${argv.minutes*60},${totalTime/execTimes.length}\n`;
-                let datasetFile = "./results/" +new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
- 
-                fs.writeFileSync(datasetFile, csvBody,'utf8');
+
+
             }, 5000);
         }, argv.minutes*60000 + 100);
 
 
         //await contract.removeContractListener(listener);
-
         // Disconnect from the gateway.
         //await contract.removeContractListener(listener);
 
@@ -139,6 +132,7 @@ async function getDetections() {
         // Evaluate the specified transaction.
         const result = await contract.evaluateTransaction('queryAllDetections');
         let a = JSON.parse(result.toString()).length;
+        gateway.disconnect();
         return a;
 
     } catch (error) {
@@ -150,9 +144,7 @@ async function getDetections() {
 if (argv._.includes('launchDetections')) {
 
 
-    if(!fs.existsSync("./results")){
-      fs.mkdirSync("./results");
-    }
+
     getDetections().then(res => {
         for (let i = 1; i <= argv.numberSensors; i++) {
             main(i, res + i, argv.numberSensors);
