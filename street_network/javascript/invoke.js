@@ -9,6 +9,7 @@ const yargs = require('yargs');
 const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const csv = require('csvtojson');
 
 const argv = yargs
     .command('launchDetections', 'Generate detections during the given time', {
@@ -21,13 +22,23 @@ const argv = yargs
             description: 'minutes of execution',
             alias: 'm',
             type: 'number',
+        },
+        streetKilometers: {
+            description: 'number of kilometers of the street',
+            alias: 's',
+            type: 'number',
+        },
+        numberSensor: {
+            description: 'number of the sensor',
+            alias: 'j',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberDetection, numberSensors) {
+async function main(numberSensor, numberDetection, numberSensors, streetKilometers, minutes) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -64,11 +75,34 @@ async function main(numberSensor, numberDetection, numberSensors) {
         //await contract.submitTransaction('calculateFlow', 'CARFLOW1', 2, "ASCENDENT", 7, 7, 1588698495684);
         let count = numberDetection;
 
+        let velocities = [];
+        let timeStart = [];
+        await csv().fromFile('./cars.csv').then((res) => {
+            for (let i = 0; i < res.length; i++){
+                velocities.push(res[i].VELOCITY);
+                timeStart.push(res[i].TIME_START);
+
+            }
+        });
+
+        let initialTime = Date.now();
+
         let interval = setInterval(() => {
+            let detectionDateTime = Date.now();
+            let timeDiference = (detectionDateTime - initialTime);
+            let numberCars = 0;
+            let maxKilometerSensor = (streetKilometers*numberSensor)/numberSensors;
+            let minKilometerSensor = (streetKilometers*(numberSensor-1))/numberSensors;
+
+            for (let i = 0; i < velocities.length; i++){
+                if((velocities[i] * (timeDiference - timeStart[i])/3600000) < maxKilometerSensor && (velocities[i] * (timeDiference- timeStart[i])/3600000) >= minKilometerSensor){
+                    numberCars++;
+                }
+            }
             let totalBeginHR = process.hrtime();
             let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
-            contract.submitTransaction('createDetection', 1, 'DETECTION' + count, 1, 1, 1, 'ascendent').then(() => {
+            contract.submitTransaction('createDetection', numberSensor, numberSensors, 'DETECTION' + count, streetKilometers, 'ascendent', numberCars, timeDiference).then(() => {
                 let totalEndHR = process.hrtime()
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                 let totalDuration = (totalEnd - totalBegin) / 1000;
@@ -76,7 +110,7 @@ async function main(numberSensor, numberDetection, numberSensors) {
             console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
             });
             count = count+ numberSensors;
-        }, 1000);
+        }, 1000 + 100*numberSensor);
         
         setTimeout(() => {
             clearInterval(interval);
@@ -86,7 +120,7 @@ async function main(numberSensor, numberDetection, numberSensors) {
 
 
             }, 5000);
-        }, argv.minutes*60000 + 100);
+        }, minutes*60000 + 100);
 
 
         //await contract.removeContractListener(listener);
@@ -146,10 +180,10 @@ if (argv._.includes('launchDetections')) {
 
 
     getDetections().then(res => {
-        for (let i = 1; i <= argv.numberSensors; i++) {
-            main(i, res + i, argv.numberSensors);
+
+        main(argv.numberSensors, res + argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes);
             
-        }
+        
 
     });
 }

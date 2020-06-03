@@ -20,12 +20,22 @@ const argv = yargs
             description: 'minutes of execution',
             alias: 'm',
             type: 'number',
+        },
+        frequency: {
+            description: 'frequency of calculation in seconds',
+            alias: 'f',
+            type: 'number',
+        },
+        timeData: {
+            description: 'number of seconds to get the data from now',
+            alias: 't',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
-async function main(numberSensors, minutes) {
+async function main(numberSensors, minutes, frequency, timeData) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -67,16 +77,17 @@ async function main(numberSensors, minutes) {
                     console.log("CalculateFlow event detected, waiting 10 seconds to launch transaction");
                     csvBody += `${numberSensors},${event.numberDetections},${event.execDuration}\n`;
                     setTimeout(() => {
+                        const fromDate =  Date.now();
                         console.log("Launching calculateFlow transaction");
-                        calculateFlow(1);
-                    }, 10000); 
+                        calculateFlow(timeData, fromDate);
+                    }, frequency*1000); 
 
                 }
    
            
         });
 
-        await calculateFlow(1)
+        await calculateFlow(timeData, Date.now())
 
         setTimeout(() => {
             contract.removeContractListener(listener);
@@ -100,10 +111,10 @@ if (argv._.includes('launchListener')) {
     if(!fs.existsSync("./results")){
         fs.mkdirSync("./results");
     }
-    main(argv.numberSensors, argv.minutes);
+    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData);
 }
 
-async function calculateFlow(numberHours) {
+async function calculateFlow(timeData, fromDate) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -133,10 +144,11 @@ async function calculateFlow(numberHours) {
         const contract = network.getContract('street_network');
 
         const result = await contract.evaluateTransaction('queryAllFlows');
-        const time = await Date.now();
+
+        //const result = await contract.evaluateTransaction('queryCalculate', time - (1000* timeData), time);
 
         // Submit the specified transaction.
-        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ JSON.parse(result.toString()).length, 1, time - (3600000* numberHours));
+        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ JSON.parse(result.toString()).length, 1, fromDate - (1000* timeData));
         //console.log('Transaction has been submitted');
 
 

@@ -6,11 +6,29 @@
 setTimeout(() => {
     clearInterval(interval);
 }, 5100);*/
-for (let index = 1; index < 5; index++) {
+const csv = require('csvtojson');
 
-    setTimeout(() => {
-       console.log(new Date().toLocaleDateString().replace("/","_").replace("/","_"));
-    }, 1000);
+async function main() {
+    let cars = [];
+    await csv().fromFile('./cars.csv').then((res) => {
+        cars = res;
+       });
 
-    
+
+       let timeDiference = 0.1;
+       let numberCars = 0;
+
+
+       for (let i = 0; i < cars.length; i++){
+           if((cars[i].VELOCITY * timeDiference) < 199999 && (cars[i].VELOCITY * timeDiference) >= 0.1){
+            console.log(cars[i].VELOCITY);
+           }
+       }
+       let d = 0;
+       let c = cars.reduce((a,b)=>{
+           d+= parseInt(b.VELOCITY);
+        return a + b;
+    });
+       console.log(d);
 }
+main();

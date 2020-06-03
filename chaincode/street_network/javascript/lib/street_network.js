@@ -162,16 +162,20 @@ class Street_network extends Contract {
         return JSON.stringify(allResults);
     }
 
-    async createDetection(ctx, streetId, detectionNumber, detectionKilometer, detectionLatitude, detectionLongitude, direction) {
+    async createDetection(ctx, numberSensor, numberSensors, detectionNumber, streetKilometers, direction, numberCars, timeDiference) {
         let detectionDateTime = Date.now();
-    
+
+        let maxKilometerSensor = (streetKilometers*numberSensor)/numberSensors;
+        let minKilometerSensor = (streetKilometers*(numberSensor-1))/numberSensors;
+
         const detection = {
-            streetId,
+            numberSensor: 'sensor' + numberSensor,
             docType: 'detection',
-            detectionKilometer,
-            detectionLatitude,
-            detectionLongitude,
             detectionDateTime,
+            numberCars,
+            maxKilometerSensor,
+            minKilometerSensor,
+            timeDiference
         };
     
         if(direction === 'ascendent'){
@@ -181,21 +185,18 @@ class Street_network extends Contract {
         }
 
         await ctx.stub.putState(detectionNumber, Buffer.from(JSON.stringify(detection)));
-
-        let event = {
-            detectionId: detectionNumber,
-            type: 'createDetection',
-
-        };
-        await ctx.stub.setEvent('DetectionEvent', Buffer.from(JSON.stringify(event)));
     }
     
     async calculateFlow(ctx, calculationNumber, streetId, fromDate) {
         let toDate = Date.now();
 
-        const detections = await this.queryCalculate(ctx, fromDate, toDate);
-        
-        let carsPerSecond = ((JSON.parse(detections.toString()).length *1000) /  (toDate - fromDate)).toFixed(3);
+        const res = await this.queryCalculate(ctx, fromDate, toDate);
+        let detections = JSON.parse(res.toString());
+        let numberCars = 0;
+        for(let i=0; i< detections.length; i++){
+            numberCars +=  parseInt(detections[i].Record.numberCars);
+        }
+        let carsPerSecond = ((numberCars *1000) /  (toDate - fromDate)).toFixed(3);
         
         const carFlow = {
             streetId,
@@ -205,6 +206,9 @@ class Street_network extends Contract {
                 toDate
             },
             carsPerSecond,
+            fromDate,
+            toDate,
+            numberCars
         };
 
         let totalBeginHR = process.hrtime();
@@ -217,7 +221,7 @@ class Street_network extends Contract {
         let totalDuration = (totalEnd - totalBegin) / 1000;
 
         let event = {
-            numberDetections: (JSON.parse(detections.toString()).length),
+            numberDetections: detections.length,
             type: 'calculateFlow',
             execDuration: totalDuration
 
@@ -256,8 +260,7 @@ class Street_network extends Contract {
         return this.queryWithQueryString(ctx, queryString);
     
     }
-    
-    
+        
     async queryWithQueryString(ctx, queryString) {
     
         console.log('query String');

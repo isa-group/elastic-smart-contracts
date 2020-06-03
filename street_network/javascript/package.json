@@ -16,6 +16,7 @@
     "license": "Apache-2.0",
     "dependencies": {
         "child_process": "^1.0.2",
+        "csvtojson": "^2.0.10",
         "fabric-ca-client": "^2.1.0",
         "fabric-network": "^2.1.0",
         "yargs": "^15.3.1"

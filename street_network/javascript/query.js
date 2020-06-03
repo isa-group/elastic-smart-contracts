@@ -7,6 +7,7 @@
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
 const fs = require('fs');
+const csv = require('csvtojson');
 
 
 async function main() {
@@ -28,6 +29,7 @@ async function main() {
             return;
         }
 
+
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: 'sensor1', discovery: { enabled: true, asLocalhost: true } });
@@ -38,12 +40,16 @@ async function main() {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
+
         // Evaluate the specified transaction.
         //const result = await contract.evaluateTransaction('queryAllDetections');
-        //const result = await contract.evaluateTransaction('queryAllFlows');
-        const result = await contract.evaluateTransaction('queryCalculate', 0, 99999999999999999999999999999999);
+        const result = await contract.evaluateTransaction('queryAllFlows');
+       // const result = await contract.evaluateTransaction('queryCalculate', 1591137120964, 1591137151065);
+
+        let detections = JSON.parse(result.toString());
+
         //console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+        console.log(result.toString());
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
