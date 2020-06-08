@@ -162,21 +162,18 @@ class Street_network extends Contract {
         return JSON.stringify(allResults);
     }
 
-    async createDetection(ctx, numberSensor, numberSensors, detectionNumber, streetKilometers, direction, numberCars, timeDiference) {
+    async createDetection(ctx, numberSensor, detectionNumber, sensorKilometer, direction, numberCars) {
         let detectionDateTime = Date.now();
-
-        let maxKilometerSensor = (streetKilometers*numberSensor)/numberSensors;
-        let minKilometerSensor = (streetKilometers*(numberSensor-1))/numberSensors;
-
+        let sensor = parseInt(numberSensor)
         const detection = {
-            numberSensor: 'sensor' + numberSensor,
+            sensor,
             docType: 'detection',
             detectionDateTime,
             numberCars,
-            maxKilometerSensor,
-            minKilometerSensor,
-            timeDiference
+            sensorKilometer
         };
+
+        // Añadir la resolución a los datos y cambiar de zona a unico punto, hacer el flujo en cuanto a cada sensor junto con un agregador
     
         if(direction === 'ascendent'){
             detection.direction = 'ASCENDENT';
@@ -187,16 +184,24 @@ class Street_network extends Contract {
         await ctx.stub.putState(detectionNumber, Buffer.from(JSON.stringify(detection)));
     }
     
-    async calculateFlow(ctx, calculationNumber, streetId, fromDate) {
+    async calculateFlow(ctx, calculationNumber, streetId, fromDate, numberSensors) {
         let toDate = Date.now();
 
-        const res = await this.queryCalculate(ctx, fromDate, toDate);
-        let detections = JSON.parse(res.toString());
-        let numberCars = 0;
-        for(let i=0; i< detections.length; i++){
-            numberCars +=  parseInt(detections[i].Record.numberCars);
+        let res = [];
+        let bySection = [];
+        let totalDetections = 0;
+        let total = 0;
+        for(let j=1; j<=numberSensors; j++){
+            res.push(await this.queryCalculate(ctx, fromDate, toDate, j));
+            let detections = await JSON.parse(res[j-1].toString());
+            let numberCars = 0;
+            for(let i=0; i< detections.length; i++){
+                numberCars +=  parseInt(detections[i].Record.numberCars);
+            }
+            bySection.push(parseFloat(((numberCars *1000) /  (toDate - fromDate)).toFixed(3)));
+            total += parseFloat(((numberCars *1000) /  (toDate - fromDate)).toFixed(3));
+            totalDetections += numberCars;
         }
-        let carsPerSecond = ((numberCars *1000) /  (toDate - fromDate)).toFixed(3);
         
         const carFlow = {
             streetId,
@@ -205,10 +210,11 @@ class Street_network extends Contract {
                 fromDate,
                 toDate
             },
-            carsPerSecond,
-            fromDate,
-            toDate,
-            numberCars
+            carsPerSecond: {
+                bySection,
+                total: total/numberSensors
+            },
+            totalDetections
         };
 
         let totalBeginHR = process.hrtime();
@@ -221,9 +227,11 @@ class Street_network extends Contract {
         let totalDuration = (totalEnd - totalBegin) / 1000;
 
         let event = {
-            numberDetections: detections.length,
+            totalDetections: totalDetections,
             type: 'calculateFlow',
-            execDuration: totalDuration
+            execDuration: totalDuration,
+            carsPerSecondSection: bySection,
+            carsPerSecondTotal: total/numberSensors
 
         };
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
@@ -247,10 +255,13 @@ class Street_network extends Contract {
         return JSON.stringify(allResults);
     }
     
-    async queryCalculate(ctx, fromDate, toDate) {
+    async queryCalculate(ctx, fromDate, toDate, numberSensor) {
     
         let queryString = `{
             "selector": {
+                "sensor": {
+                    "$eq": ${numberSensor}
+                },
                 "detectionDateTime": {
                     "$lte": ${toDate}, 
                     "$gte": ${fromDate}

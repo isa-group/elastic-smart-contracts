@@ -32,13 +32,18 @@ const argv = yargs
             description: 'number of the sensor',
             alias: 'j',
             type: 'number',
+        },
+        dataFrequency: {
+            description: 'frequency to insert data by sensors in seconds',
+            alias: 'd',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberDetection, numberSensors, streetKilometers, minutes) {
+async function main(numberSensor, numberDetection, numberSensors, streetKilometers, minutes, dataFrequency) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -77,32 +82,27 @@ async function main(numberSensor, numberDetection, numberSensors, streetKilomete
 
         let velocities = [];
         let timeStart = [];
+        let inde = []
         await csv().fromFile('./cars.csv').then((res) => {
             for (let i = 0; i < res.length; i++){
                 velocities.push(res[i].VELOCITY);
                 timeStart.push(res[i].TIME_START);
-
+                inde.push(i);
             }
         });
 
         let initialTime = Date.now();
 
         let interval = setInterval(() => {
-            let detectionDateTime = Date.now();
-            let timeDiference = (detectionDateTime - initialTime);
-            let numberCars = 0;
-            let maxKilometerSensor = (streetKilometers*numberSensor)/numberSensors;
-            let minKilometerSensor = (streetKilometers*(numberSensor-1))/numberSensors;
 
-            for (let i = 0; i < velocities.length; i++){
-                if((velocities[i] * (timeDiference - timeStart[i])/3600000) < maxKilometerSensor && (velocities[i] * (timeDiference- timeStart[i])/3600000) >= minKilometerSensor){
-                    numberCars++;
-                }
-            }
             let totalBeginHR = process.hrtime();
             let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
-            contract.submitTransaction('createDetection', numberSensor, numberSensors, 'DETECTION' + count, streetKilometers, 'ascendent', numberCars, timeDiference).then(() => {
+            contract.submitTransaction('createDetection', numberSensor, 'DETECTION' + count, (streetKilometers*numberSensor)/numberSensors, 'ascendent',
+             inde.filter((i) => {
+                 return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= (streetKilometers*numberSensor)/numberSensors &&
+                  (velocities[i] * (Date.now() - initialTime - 1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
+             }).length).then(() => {
                 let totalEndHR = process.hrtime()
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                 let totalDuration = (totalEnd - totalBegin) / 1000;
@@ -110,7 +110,7 @@ async function main(numberSensor, numberDetection, numberSensors, streetKilomete
             console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
             });
             count = count+ numberSensors;
-        }, 1000 + 100*numberSensor);
+        }, dataFrequency*1000);
         
         setTimeout(() => {
             clearInterval(interval);
@@ -181,7 +181,7 @@ if (argv._.includes('launchDetections')) {
 
     getDetections().then(res => {
 
-        main(argv.numberSensors, res + argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes);
+        main(argv.numberSensor, res + argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency);
             
         
 

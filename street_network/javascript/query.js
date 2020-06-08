@@ -44,7 +44,7 @@ async function main() {
         // Evaluate the specified transaction.
         //const result = await contract.evaluateTransaction('queryAllDetections');
         const result = await contract.evaluateTransaction('queryAllFlows');
-       // const result = await contract.evaluateTransaction('queryCalculate', 1591137120964, 1591137151065);
+        //const result = await contract.evaluateTransaction('queryCalculate', 0, 999999999999999999999,1);
 
         let detections = JSON.parse(result.toString());
 

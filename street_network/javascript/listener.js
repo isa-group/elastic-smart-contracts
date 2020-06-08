@@ -64,7 +64,7 @@ async function main(numberSensors, minutes, frequency, timeData) {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
         //const result = await contract.evaluateTransaction('queryAllDetections');
-        let csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME\n";
+        let csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL\n";
 
         const listener = await contract.addContractListener((event) => {
 
@@ -73,13 +73,13 @@ async function main(numberSensors, minutes, frequency, timeData) {
             
 
                 if (event.type === 'calculateFlow'){
-                    console.log('A flow has beeen calculated with a total number of '+ event.numberDetections + ' detections');
+                    console.log('A flow has beeen calculated with a total number of '+ event.totalDetections + ' detections');
                     console.log("CalculateFlow event detected, waiting 10 seconds to launch transaction");
-                    csvBody += `${numberSensors},${event.numberDetections},${event.execDuration}\n`;
+                    csvBody += `${numberSensors},${event.totalDetections},${event.execDuration},[${event.carsPerSecondSection.toString().replace(/,/g,";")}],${event.carsPerSecondTotal}\n`;
                     setTimeout(() => {
                         const fromDate =  Date.now();
                         console.log("Launching calculateFlow transaction");
-                        calculateFlow(timeData, fromDate);
+                        calculateFlow(timeData, fromDate, numberSensors);
                     }, frequency*1000); 
 
                 }
@@ -87,7 +87,7 @@ async function main(numberSensors, minutes, frequency, timeData) {
            
         });
 
-        await calculateFlow(timeData, Date.now())
+        await calculateFlow(timeData, Date.now(), numberSensors)
 
         setTimeout(() => {
             contract.removeContractListener(listener);
@@ -114,7 +114,7 @@ if (argv._.includes('launchListener')) {
     main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData);
 }
 
-async function calculateFlow(timeData, fromDate) {
+async function calculateFlow(timeData, fromDate, numberSensors) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -148,7 +148,7 @@ async function calculateFlow(timeData, fromDate) {
         //const result = await contract.evaluateTransaction('queryCalculate', time - (1000* timeData), time);
 
         // Submit the specified transaction.
-        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ JSON.parse(result.toString()).length, 1, fromDate - (1000* timeData));
+        await contract.submitTransaction('calculateFlow', 'CARFLOW'+ JSON.parse(result.toString()).length, 1, fromDate - (1000* timeData), numberSensors);
         //console.log('Transaction has been submitted');
 
 
