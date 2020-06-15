@@ -97,7 +97,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 
                 if (event.type === 'calculateFlow'){
                     console.log('A flow has beeen calculated with a total number of '+ event.totalDetections + ' detections');
-                    console.log("CalculateFlow event detected, waiting 10 seconds to launch transaction");
+                    console.log(`CalculateFlow event detected, waiting ${frequency} seconds to launch transaction`);
                     csvBody += `${numberSensors},${event.totalDetections},${event.execDuration},[${event.carsPerSecondSection.toString().replace(/,/g,";")}],${event.carsPerSecondTotal},${frequency},${timeData}\n`;
                     execTimes.push(event.execDuration);
                     setTimeout(() => {
@@ -135,11 +135,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
                 }
             });
             let avg = execTimes.reduce((a,b)=> {
-                if(b>a){
-                    return b
-                }else{
-                    return a
-                }
+                return a+b;
             })/execTimes.length;
             let stdev = execTimes.map((a) => {
                 return ((a - avg)**2)/execTimes.length;
