@@ -84,7 +84,10 @@ async function main(numberSensor) {
 
 if (argv._.includes('registerSensors')) {
     for (let i = 1; i <= argv.numberSensors; i++) {
-        main(i);
+        setTimeout(() => {
+            main(i);       
+        }, 500*i);
+
     }
 
 }

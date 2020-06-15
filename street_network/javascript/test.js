@@ -34,7 +34,7 @@ console.log(arra.filter((number) => {
 console.log(arra.indexOf(30));*/
 let bySection = [1,4,8,3]
 
-let total = bySection.reduce((a,b)=> {
-    return a+b;
-})/bySection.length;
+let total = bySection.map((a)=> {
+    return Math.sqrt(a);
+});
 console.log(total);

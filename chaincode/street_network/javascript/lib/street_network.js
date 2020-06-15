@@ -185,6 +185,8 @@ class Street_network extends Contract {
     }
     
     async calculateFlow(ctx, calculationNumber, streetId, fromDate, numberSensors) {
+        let totalBeginHR = process.hrtime();
+        let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
         let toDate = Date.now();
 
         let res = [];
@@ -216,9 +218,6 @@ class Street_network extends Contract {
             },
             totalDetections
         };
-
-        let totalBeginHR = process.hrtime();
-        let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
         await ctx.stub.putState(calculationNumber, Buffer.from(JSON.stringify(carFlow)));
 

@@ -120,7 +120,7 @@ async function main(numberSensor, numberDetection, numberSensors, streetKilomete
 
 
             }, 5000);
-        }, minutes*60000 + 100);
+        }, minutes*1000 + 100);
 
 
         //await contract.removeContractListener(listener);

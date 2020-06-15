@@ -49,7 +49,7 @@ async function main() {
         let detections = JSON.parse(result.toString());
 
         //console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
-        console.log(result.toString());
+        console.log(JSON.parse(result.toString()).length);
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

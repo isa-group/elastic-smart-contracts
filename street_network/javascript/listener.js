@@ -30,12 +30,17 @@ const argv = yargs
             description: 'number of seconds to get the data from now',
             alias: 't',
             type: 'number',
+        },
+        prefix: {
+            description: 'prefix for the csv to use',
+            alias: 'p',
+            type: 'string',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
-async function main(numberSensors, minutes, frequency, timeData) {
+async function main(numberSensors, minutes, frequency, timeData, prefix) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -63,8 +68,26 @@ async function main(numberSensors, minutes, frequency, timeData) {
 
         // Get the contract from the network.
         const contract = network.getContract('street_network');
-        //const result = await contract.evaluateTransaction('queryAllDetections');
-        let csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL\n";
+
+        let csvBody = "";
+        let csvBodyCalculated = "";
+        let resultFile = "./results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+        fs.readFile(resultFile, (err, data) => {
+            if(err){
+                csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA\n";
+            }else{
+                csvBody = data;
+            }
+        });
+        let resultCalculatedFile = "./results/" + prefix + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+        fs.readFile(resultCalculatedFile, (err, data) => {
+            if(err){
+                csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME\n";
+            }else{
+                csvBodyCalculated = data;
+            }
+        });
+        let execTimes = [];
 
         const listener = await contract.addContractListener((event) => {
 
@@ -75,7 +98,8 @@ async function main(numberSensors, minutes, frequency, timeData) {
                 if (event.type === 'calculateFlow'){
                     console.log('A flow has beeen calculated with a total number of '+ event.totalDetections + ' detections');
                     console.log("CalculateFlow event detected, waiting 10 seconds to launch transaction");
-                    csvBody += `${numberSensors},${event.totalDetections},${event.execDuration},[${event.carsPerSecondSection.toString().replace(/,/g,";")}],${event.carsPerSecondTotal}\n`;
+                    csvBody += `${numberSensors},${event.totalDetections},${event.execDuration},[${event.carsPerSecondSection.toString().replace(/,/g,";")}],${event.carsPerSecondTotal},${frequency},${timeData}\n`;
+                    execTimes.push(event.execDuration);
                     setTimeout(() => {
                         const fromDate =  Date.now();
                         console.log("Launching calculateFlow transaction");
@@ -86,16 +110,47 @@ async function main(numberSensors, minutes, frequency, timeData) {
    
            
         });
-
-        await calculateFlow(timeData, Date.now(), numberSensors)
+        const flows = await contract.evaluateTransaction('queryAllFlows');
+        if(JSON.parse(flows.toString()).length == 0){
+            calculateFlow(timeData, Date.now(), numberSensors);
+        }
+        
 
         setTimeout(() => {
             contract.removeContractListener(listener);
-            let datasetFile = "./results/" +new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
-            fs.writeFileSync(datasetFile, csvBody,'utf8');
+            fs.writeFileSync(resultFile, csvBody,'utf8');
             gateway.disconnect();
-
-        }, minutes*60000 + 3000);
+            let min = execTimes.reduce((a,b)=> {
+                if(b<a){
+                    return b
+                }else{
+                    return a
+                }
+            });
+            let max = execTimes.reduce((a,b)=> {
+                if(b>a){
+                    return b
+                }else{
+                    return a
+                }
+            });
+            let avg = execTimes.reduce((a,b)=> {
+                if(b>a){
+                    return b
+                }else{
+                    return a
+                }
+            })/execTimes.length;
+            let stdev = execTimes.map((a) => {
+                return ((a - avg)**2)/execTimes.length;
+            })
+            .reduce((a,b)=> {
+                return a+b;
+            });
+            csvBodyCalculated += `${numberSensors},${frequency},${timeData},${min},${max},${avg},${Math.sqrt(stdev)}\n`;
+            fs.writeFileSync(resultCalculatedFile, csvBodyCalculated,'utf8');
+            return true;
+        }, minutes*1000 + 3000);
 
 
         
@@ -111,7 +166,7 @@ if (argv._.includes('launchListener')) {
     if(!fs.existsSync("./results")){
         fs.mkdirSync("./results");
     }
-    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData);
+    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix);
 }
 
 async function calculateFlow(timeData, fromDate, numberSensors) {
