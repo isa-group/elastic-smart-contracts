@@ -123,11 +123,6 @@ async function main(numberSensor, numberDetection, numberSensors, streetKilomete
         }, minutes*1000 + 100);
 
 
-        //await contract.removeContractListener(listener);
-        // Disconnect from the gateway.
-        //await contract.removeContractListener(listener);
-
-
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
         process.exit(1);

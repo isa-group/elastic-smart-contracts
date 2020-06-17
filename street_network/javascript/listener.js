@@ -69,6 +69,8 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
+        let ignoreEvent = true;
+
         let csvBody = "";
         let csvBodyCalculated = "";
         let resultFile = "./results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
@@ -82,7 +84,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         let resultCalculatedFile = "./results/" + prefix + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultCalculatedFile, (err, data) => {
             if(err){
-                csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME\n";
+                csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS\n";
             }else{
                 csvBodyCalculated = data;
             }
@@ -91,30 +93,32 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 
         const listener = await contract.addContractListener((event) => {
 
-            event = event.payload.toString();
-            event = JSON.parse(event)
-            
+            if(!ignoreEvent){
+                event = event.payload.toString();
+                event = JSON.parse(event); 
 
                 if (event.type === 'calculateFlow'){
                     console.log('A flow has beeen calculated with a total number of '+ event.totalDetections + ' detections');
                     console.log(`CalculateFlow event detected, waiting ${frequency} seconds to launch transaction`);
                     csvBody += `${numberSensors},${event.totalDetections},${event.execDuration},[${event.carsPerSecondSection.toString().replace(/,/g,";")}],${event.carsPerSecondTotal},${frequency},${timeData}\n`;
                     execTimes.push(event.execDuration);
-                    setTimeout(() => {
-                        const fromDate =  Date.now();
-                        console.log("Launching calculateFlow transaction");
-                        calculateFlow(timeData, fromDate, numberSensors);
-                    }, frequency*1000); 
 
                 }
-   
+            }
            
         });
-        const flows = await contract.evaluateTransaction('queryAllFlows');
-        if(JSON.parse(flows.toString()).length == 0){
-            calculateFlow(timeData, Date.now(), numberSensors);
-        }
-        
+
+        let intervalCalculate = setInterval(() => {
+            ignoreEvent = false;
+            let fromDate =  Date.now();
+            console.log("Launching calculateFlow transaction");
+            calculateFlow(timeData, fromDate, numberSensors);
+        }, frequency*1000);
+
+
+        setTimeout(() => {
+            clearInterval(intervalCalculate);
+        }, minutes*1000 + 500);
 
         setTimeout(() => {
             contract.removeContractListener(listener);
@@ -143,10 +147,10 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
             .reduce((a,b)=> {
                 return a+b;
             });
-            csvBodyCalculated += `${numberSensors},${frequency},${timeData},${min},${max},${avg},${Math.sqrt(stdev)}\n`;
+            csvBodyCalculated += `${numberSensors},${frequency},${timeData},${min},${max},${avg},${Math.sqrt(stdev)},${execTimes.length}\n`;
             fs.writeFileSync(resultCalculatedFile, csvBodyCalculated,'utf8');
             return true;
-        }, minutes*1000 + 3000);
+        }, minutes*1000 + 10000);
 
 
         
@@ -196,19 +200,12 @@ async function calculateFlow(timeData, fromDate, numberSensors) {
 
         const result = await contract.evaluateTransaction('queryAllFlows');
 
-        //const result = await contract.evaluateTransaction('queryCalculate', time - (1000* timeData), time);
 
         // Submit the specified transaction.
         await contract.submitTransaction('calculateFlow', 'CARFLOW'+ JSON.parse(result.toString()).length, 1, fromDate - (1000* timeData), numberSensors);
-        //console.log('Transaction has been submitted');
-
-
-        //await contract.removeContractListener(listener);
 
         // Disconnect from the gateway.
-        //await contract.removeContractListener(listener);
         await gateway.disconnect();
-        //await console.log("Disconnected")
 
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
