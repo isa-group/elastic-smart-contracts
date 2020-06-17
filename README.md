@@ -4,7 +4,7 @@
 
 2. Download the Binaries and Docker images with the following command line: 
 ```
-curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.1 1.4.7 0.4.20
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.20
 ```
 **This will also download the fabric samples as there is no installer available for just the Binaries and Images, for more information please check https://hyperledger-fabric.readthedocs.io/en/release-2.1/install.html**
 
