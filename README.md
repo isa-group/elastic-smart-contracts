@@ -5,7 +5,7 @@ Note: if some of the commands given return an error, try: sudo apt update
 # Usage instructions
 
 
-2. Install Git if you don not have it already:
+1. Install Git if you don not have it already:
 
 2. Download and install cURL: https://curl.haxx.se/download.html
 
