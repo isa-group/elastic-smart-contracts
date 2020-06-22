@@ -9,7 +9,7 @@ Note: if some of the commands given return an error, try: sudo apt update
 
 2. Download and install cURL: https://curl.haxx.se/download.html
 
-  -2.1 If you are running on mac, install wget:
+    2.1 If you are running on mac, install wget:
   ```
   brew install wget
   ```
