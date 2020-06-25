@@ -3,11 +3,11 @@
 
 
 echo "########### LAUNCHING THE EXPERIMENTS ###########"
-./exp2.sh
+./launchExperimentS01-02.sh
 sleep 10
-./exp3.sh
+./launchExperimentS01-03.sh
 sleep 10
-./exp1.sh
+./launchExperimentS01-01.sh
 sleep 10
-./exp4.sh
+./launchExperimentS01-04.sh
  echo "############ SCRIPT FINISHED ############"

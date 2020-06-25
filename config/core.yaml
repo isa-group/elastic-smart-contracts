@@ -683,15 +683,15 @@ operations:
     # TLS configuration for the operations endpoint
     tls:
         # TLS enabled
-        enabled: false
+        enabled: true
 
         # path to PEM encoded server certificate for the operations server
         cert:
-            file:
+            file: tls/server.crt
 
         # path to PEM encoded server key for the operations server
         key:
-            file:
+            file: tls/server.key
 
         # most operations service endpoints require client authentication when TLS
         # is enabled. clientAuthRequired requires client certificate authentication
@@ -709,7 +709,7 @@ operations:
 ###############################################################################
 metrics:
     # metrics provider is one of statsd, prometheus, or disabled
-    provider: disabled
+    provider: prometheus
 
     # statsd configuration
     statsd:

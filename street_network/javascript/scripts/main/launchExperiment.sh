@@ -2,8 +2,8 @@
 #!/bin/bash
 
 cd ..
-sudo ./networkDown.sh
-sudo ./startFabric.sh javascript
+./networkDown.sh
+./startFabric.sh javascript
 cd javascript
 ./register.sh 16 
 node listener.js launchListener -n $1 -m $2 -f $4 -t $5 -p $7 &
@@ -14,5 +14,5 @@ do
 done
 wait $WR
 cd ..
-sudo ./networkDown.sh
+./networkDown.sh
 exit
