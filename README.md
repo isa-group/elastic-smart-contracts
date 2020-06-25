@@ -30,7 +30,7 @@ Note: if some of the commands given return an error, try: sudo apt update
   export GOPATH=$HOME/go
   export PATH=$PATH:$GOPATH/bin
   ``` 
-5. Install Node and Npm, Node version 8 is supported from 8.9.4 and higher. Node version 10 is supported from 10.15.3 and higher. It is highly recommended to use NVM to manage node versions, check the installation at https://github.com/nvm-sh/nvm#installing-and-updating as the commands may vary with the version. This guide uses Node 8.10.0 and NPM 5.6.0
+5. Install Node and Npm, Node version 8 is supported from 8.9.4 and higher. Node version 10 is supported from 10.15.3 and higher. It is highly recommended to use NVM to manage node versions, check the installation at https://github.com/nvm-sh/nvm#installing-and-updating as the commands may vary with the version. This guide uses Node 8.13.0 and NPM 6.4.1
 
 6. Make sure you have Python 2.7, if not, run:
   ```
