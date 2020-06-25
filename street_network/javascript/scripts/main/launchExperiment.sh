@@ -2,6 +2,8 @@
 #!/bin/bash
 
 cd ..
+cd ..
+cd ..
 ./networkDown.sh
 ./startFabric.sh javascript
 cd javascript

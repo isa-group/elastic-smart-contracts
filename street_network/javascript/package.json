@@ -17,8 +17,10 @@
     "dependencies": {
         "child_process": "^1.0.2",
         "csvtojson": "^2.0.10",
-        "fabric-ca-client": "^2.1.0",
-        "fabric-network": "^2.1.0",
+        "fabric-ca-client": "^2.1.1",
+        "fabric-network": "^2.1.1",
+        "protobufjs": "^6.9.0",
+        "protobufs": "^0.1.0",
         "yargs": "^15.3.1"
     },
     "devDependencies": {
@@ -27,7 +29,7 @@
         "mocha": "^5.2.0",
         "nyc": "^14.1.1",
         "sinon": "^7.1.1",
-        "sinon-chai": "^3.3.0"
+        "sinon-chai": "^3.5.0"
     },
     "nyc": {
         "exclude": [
