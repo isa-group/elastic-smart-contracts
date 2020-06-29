@@ -1,7 +1,7 @@
 
 #!/bin/bash
 
-
+cd ExperimentSet01
 echo "########### LAUNCHING THE EXPERIMENTS ###########"
 ./launchExperimentS01-02.sh
 sleep 10

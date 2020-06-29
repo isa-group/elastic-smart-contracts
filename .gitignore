@@ -1,2 +1,3 @@
 test-network/street_network.tar.gz
-street_network/javascript/package-lock.json
+street_network/main/package-lock.json
+bin

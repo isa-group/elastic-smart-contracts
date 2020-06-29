@@ -163,9 +163,6 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 }
 
 if (argv._.includes('launchListener')) {
-    if(!fs.existsSync("./results")){
-        fs.mkdirSync("./results");
-    }
     main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix);
 }
 

@@ -2,7 +2,6 @@
 #!/bin/bash
 
 cd ..
-cd main
 echo "#### STARTING EXPERIMENT NUMBER 2: FREQUENCY OF FLOW CALCULATION INCREASED EXPONENTIALLY ###"
 for i in $(seq 0 1 6); do                                             
     frequency=$((2**i))
@@ -11,5 +10,4 @@ for i in $(seq 0 1 6); do
     sleep 5
 done
 echo "############ EXPERIMENT FINISHED ############"
-cd ..
-cd setExperiments01
+cd ExperimentSet01

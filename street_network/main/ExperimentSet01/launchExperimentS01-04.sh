@@ -2,7 +2,6 @@
 #!/bin/bash
 
 cd ..
-cd main
 echo "#### STARTING EXPERIMENT NUMBER 4: EXECUTION TIME INCREASED EXPONENTIALLY ###"
 for i in $(seq 8 1 12); do                                             
     execTime=$((2**i))
@@ -11,5 +10,4 @@ for i in $(seq 8 1 12); do
     sleep 5
 done
 echo "############ EXPERIMENT FINISHED ############"
-cd ..
-cd setExperiments01
+cd ExperimentSet01

@@ -2,7 +2,6 @@
 #!/bin/bash
 
 cd ..
-cd main
 echo "#### STARTING EXPERIMENT NUMBER 1: NUMBER OF SENSORS INCREASED EXPONENTIALLY ###"
 for i in $(seq 0 1 4); do                                             
     sensors=$((2**i))
@@ -11,5 +10,4 @@ for i in $(seq 0 1 4); do
     sleep 5
 done
 echo "############ EXPERIMENT FINISHED ############"
-cd ..
-cd setExperiments01
+cd ExperimentSet01
