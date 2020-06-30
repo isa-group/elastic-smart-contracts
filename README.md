@@ -57,7 +57,7 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.18
     ```
     this will cause the scripts to always point to the binaries placed at elastic-smart-contracts, regardless of being in a new terminal.
     
-    (bin is already in the .gitignore file)
+    (bin is already in the .gitignore file but you should be careful not to upload the uncommented line of network.sh)
 
 9. go to **elastic-smart-contracts/street-network/javascript** and run: 
 ```
