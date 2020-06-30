@@ -46,6 +46,19 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.18
 
 8. Clone the repository https://github.com/isa-group/elastic-smart-contracts into the desired directory
 
+    -8.1 Now you need to set the path to the binaries downloaded previosly (the **bin** folder), you can either run:
+    ```
+    export PATH=<path to bin>:$PATH
+    ```
+    or copy the /bin folder inside the elastic smart contracts folder you just cloned and uncomment line 15 of elastic-smart-contracts/test-network/network.sh      
+    which is:
+    ```
+    export PATH=${PWD}/../bin:${PWD}:$PATH
+    ```
+    this will cause the scripts to always point to the binaries placed at elastic-smart-contracts, regardless of being in a new terminal.
+    
+    (bin is already in the .gitignore file)
+
 9. go to **elastic-smart-contracts/street-network/javascript** and run: 
 ```
 npm install
