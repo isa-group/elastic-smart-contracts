@@ -53,3 +53,32 @@ npm install
 ```
 
 10. Wait for the network to start up and run the experiments! Once it is finished it will shut down itself.
+
+
+
+# Prometheus monitoring
+
+1. Once you have cloned the elastic smart contracts repository you can see a file named **prometheus.yml** inside a folder called **prometheus**.
+
+2. Run the following command: 
+```
+docker start -i $(docker ps -a -q --filter ancestor=prom/prometheus) || docker run -p 9090:9090 -v <path to prometheus.yml>:/etc/prometheus/prometheus.yml prom/prometheus
+
+```
+This will start the prometheus container if you already have it or run it otherwise.
+
+3. Go to http://localhost:9090/targets and check that Prometheus is up and running, you can observe now how the peer targets are down showing the error "server misbehaving", this is normal behaviour due to prometheus not being yet connected to the blockchain network.
+
+    -3.1 The experiment scripts are programmed to connect and disconnect automatically prometheus to the network, but you can do it manually with the following                     
+    commands if you wish to do so:
+    ```
+    docker network connect net_test $(docker ps -a -q --filter ancestor=prom/prometheus)
+
+    docker network disconnect net_test $(docker ps -a -q --filter ancestor=prom/prometheus)
+    ```
+    
+4. Open Grafana and add a new dataSource to look like this:
+
+5. Import the Grafana dashboard through the Json file contained within the prometheus folder.
+
+6. Run any experiment to see the results.
