@@ -1,7 +1,7 @@
 
 #!/bin/bash
 
-cd ..
+
 docker network disconnect net_test $(docker ps -a -q --filter ancestor=prom/prometheus)
 ./networkDown.sh
 ./startFabric.sh javascript
