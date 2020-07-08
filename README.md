@@ -92,6 +92,8 @@ This will start the prometheus container if you already have it or run it otherw
     
 4. Open Grafana and add a new dataSource to look like this:
 
+![dataSource](prometheus/Grafana_dataSource.png)
+
 5. Import the Grafana dashboard through the Json file contained within the prometheus folder.
 
 6. Run any experiment to see the results.
