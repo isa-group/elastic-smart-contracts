@@ -19,6 +19,9 @@ Note: if some of the commands given return an error, try: sudo apt update
   sudo apt install docker-compose
   sudo apt update
   ```
+  
+   3.1 Make sure Docker is up and running.
+   
 4. Install Go 1.13 or greater, in order to do so you need to run:
   ```
   sudo add-apt-repository ppa:longsleep/golang-backports
@@ -78,7 +81,7 @@ npm install
 docker start -i $(docker ps -a -q --filter ancestor=prom/prometheus) || docker run -p 9090:9090 -v <path to prometheus.yml>:/etc/prometheus/prometheus.yml prom/prometheus
 
 ```
-This will start the prometheus container if you already have it or run it otherwise.
+This will start the prometheus container if you already have it or run it otherwise, if it is the first time you run this command make sure to add the path to prometheus.yaml as indicated.
 
 3. Go to http://localhost:9090/targets and check that Prometheus is up and running, you can observe now how the peer targets are down showing the error "server misbehaving", this is normal behaviour due to prometheus not being yet connected to the blockchain network.
 
