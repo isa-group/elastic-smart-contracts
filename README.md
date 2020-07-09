@@ -30,7 +30,7 @@ Note: if some of the commands given return an error, try: sudo apt update
   export GOPATH=$HOME/go
   export PATH=$PATH:$GOPATH/bin
   ``` 
-5. Install Node and Npm, Node version 8 is supported from 8.9.4 and higher. Node version 10 is supported from 10.15.3 and higher. It is highly recommended to use NVM to manage node versions, check the installation at https://github.com/nvm-sh/nvm#installing-and-updating as the commands may vary with the version. This guide uses Node 8.13.0 and NPM 6.4.1
+5. Install Node and Npm, Node version 8 is supported from 8.9.4 and higher. Node version 10 is supported from 10.15.3 and higher. It is highly recommended to use NVM to manage node versions, check the installation at https://github.com/nvm-sh/nvm#installing-and-updating as the commands may vary with the version. This guide uses Node 12.18.1 and NPM 6.14.5
 
 6. Make sure you have Python 2.7, if not, run:
   ```
@@ -59,7 +59,7 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.18
     
     (bin is already in the .gitignore file but you should be careful not to upload the uncommented line of network.sh)
 
-9. go to **elastic-smart-contracts/street-network/javascript** and run: 
+9. go to **elastic-smart-contracts/street-network/main** and run: 
 ```
 npm install
 ./launchExperiments.sh
