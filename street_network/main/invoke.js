@@ -83,7 +83,7 @@ async function main(numberSensor, numberDetection, numberSensors, streetKilomete
         let velocities = [];
         let timeStart = [];
         let inde = []
-        await csv().fromFile('./cars.csv').then((res) => {
+        await csv().fromFile('./cars2.csv').then((res) => {
             for (let i = 0; i < res.length; i++){
                 velocities.push(res[i].VELOCITY);
                 timeStart.push(res[i].TIME_START);

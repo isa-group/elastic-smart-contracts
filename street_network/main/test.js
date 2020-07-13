@@ -8,7 +8,7 @@ let timeStart = [];
 let distance = [];
 let inde = "";
 
-/*csv().fromFile('./cars.csv').then((res) => {
+csv().fromFile('./cars.csv').then((res) => {
     for (let i = 82; i < res.length; i++){
         velocities.push(res[i].VELOCITY);
         timeStart.push(res[i].TIME_START);
@@ -59,10 +59,10 @@ setTimeout(() => {
 }, 3000);*/
 
 
-request('http://localhost:9090/api/v1/query?query=ledger_blockchain_height&time=1594288905', function (error, response, body) {
+/*request('http://localhost:9090/api/v1/query?query=ledger_blockchain_height&time=1594288905', function (error, response, body) {
     if(!error){
         console.log(JSON.parse(body).data.result);
     } else {
         console.log(error);
     }
-});
+});*/

@@ -22,6 +22,7 @@
         "postman-request": "^2.88.1-postman.23",
         "protobufjs": "^6.9.0",
         "protobufs": "^0.1.0",
+        "random-normal": "^1.0.0",
         "yargs": "^15.3.1"
     },
     "devDependencies": {
