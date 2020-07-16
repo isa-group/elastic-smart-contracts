@@ -162,6 +162,25 @@ class Street_network extends Contract {
         return JSON.stringify(allResults);
     }
 
+    async queryAllSensorsInRange(ctx, numberSensors) {
+        const startKey = 'SENSOR1';
+        const endKey = 'SENSOR'+(parseInt(numberSensors)+1);
+        const allResults = [];
+        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+            const strValue = Buffer.from(value).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push({ Key: key, Record: record });
+        }
+        console.info(allResults);
+        return JSON.stringify(allResults);
+    }
+
     async createDetection(ctx, numberSensor, detectionNumber, sensorKilometer, direction, numberCars) {
         let detectionDateTime = Date.now();
         let sensor = parseInt(numberSensor)
@@ -268,6 +287,104 @@ class Street_network extends Contract {
             }
         }`;
         return this.queryWithQueryString(ctx, queryString);
+    
+    }
+
+    async querySensor(ctx, numberSensor) {
+    
+        let queryString = `{
+            "selector": {
+                "numberSensor": {
+                    "$eq": ${numberSensor}
+                }
+            }
+        }`;
+        return this.queryWithQueryString(ctx, queryString);
+    
+    }
+
+    async createSensor(ctx, numberSensor) {
+        
+    
+        const sensor = {
+            numberSensor: parseInt(numberSensor),
+            detections: [],
+        };
+    
+        await ctx.stub.putState('SENSOR'+numberSensor, Buffer.from(JSON.stringify(sensor)));
+    }
+
+    async createDetectionSensor(ctx, numberSensor, detections) {
+        let s = await this.querySensor(ctx, parseInt(numberSensor));
+        let sensor = JSON.parse(s.toString())[0];
+        let det = JSON.parse(detections);
+        
+        for(let i = 0; i< det.length; i++){
+            sensor.Record.detections.push(det[i]);
+        }
+        
+
+        await ctx.stub.putState(sensor.Key, Buffer.from(JSON.stringify(sensor.Record)));
+    }
+
+
+    async calculateFlowV2(ctx, calculationNumber, streetId, fromDate, toDate, numberSensors) {
+        let totalBeginHR = process.hrtime();
+        let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
+
+        let bySection = [];
+        let totalDetections = 0;
+        let total = 0;
+        let numSens = parseInt(numberSensors);
+        for(let j=1; j<=numSens; j++){
+            let sensor = await this.querySensor(ctx, j);
+            let detections = JSON.parse(sensor.toString())[0].Record.detections.filter((i) => {
+                return parseInt(toDate) >= i.detectionDateTime && i.detectionDateTime >= parseInt(fromDate);
+            });
+            let numberCars = 0;
+            for(let i=0; i< detections.length; i++){
+                numberCars +=  parseInt(detections[i].numberCars);
+            }
+            bySection.push(parseFloat(((numberCars *1000) /  (toDate - fromDate)).toFixed(3)));
+            total += parseFloat(((numberCars *1000) /  (toDate - fromDate)).toFixed(3));
+            totalDetections += numberCars;
+        }
+        
+        const carFlow = {
+            streetId,
+            docType: 'carflow',
+            dateFlow: {
+                fromDate: parseInt(fromDate),
+                toDate: parseInt(toDate)
+            },
+            carsPerSecond: {
+                bySection,
+                total: total/numSens
+            },
+            totalDetections,
+        };
+
+        await ctx.stub.putState(calculationNumber, Buffer.from(JSON.stringify(carFlow)));
+
+        let totalEndHR = process.hrtime()
+        let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
+        let totalDuration = (totalEnd - totalBegin) / 1000;
+
+        let event = {
+            totalDetections: totalDetections,
+            type: 'calculateFlow',
+            execDuration: totalDuration,
+            carsPerSecondSection: bySection,
+            carsPerSecondTotal: total/numberSensors
+
+        };
+        await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
+    }
+
+    async querySensor2(ctx, numberSensor) {
+        let res = await this.querySensor(ctx, numberSensor);
+
+        return JSON.parse(res.toString())[0].Record.detections;
     
     }
         

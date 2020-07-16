@@ -2,13 +2,29 @@
 const csv = require('csvtojson');
 const fs = require('fs');
 const request = require('postman-request');
+const { constants } = require('buffer');
 
-let velocities = [];
-let timeStart = [];
+let velocities = [1,2,3];
+let timeStart = velocities;
+velocities = [];
 let distance = [];
 let inde = "";
 
-csv().fromFile('./cars.csv').then((res) => {
+
+
+async function main() {
+    if(2<3 && 3>1){
+        console.log("si")
+    }else{
+        console.log("no")
+    }
+   
+
+}
+
+main()
+
+/*csv().fromFile('./cars.csv').then((res) => {
     for (let i = 82; i < res.length; i++){
         velocities.push(res[i].VELOCITY);
         timeStart.push(res[i].TIME_START);

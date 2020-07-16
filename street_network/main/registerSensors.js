@@ -4,13 +4,24 @@
 
 'use strict';
 
+const yargs = require('yargs');
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
 const fs = require('fs');
-const csv = require('csvtojson');
+const { exit } = require('process');
 
+const argv = yargs
+    .command('registerSensors', 'Register a number of sensors', {
+        numberSensors: {
+            description: 'number of sensors to register',
+            alias: 'n',
+            type: 'number',
+        }
+      }
+    )
+.help().alias('help', 'h').argv; 
 
-async function main() {
+async function main(numberSensors) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -40,24 +51,19 @@ async function main() {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
+        for(let i =1; i<=numberSensors; i++){
+            setTimeout(() => {
+                if(i == numberSensors){
+                    contract.submitTransaction('createSensor', i).then((res) => {
+                        process.exit();
+                    });
+                }else{
+                    contract.submitTransaction('createSensor', i);
+                }
 
-        // Evaluate the specified transaction.
-        //const result = await contract.evaluateTransaction('queryAllDetections');
-        //const result = await contract.evaluateTransaction('queryAllFlows');
-        //const result = await contract.evaluateTransaction('queryCalculate', 0, 999999999999999999999,1);
-        //const result = await contract.evaluateTransaction('queryAllSensorsInRange' ,'4');
+            }, 100*i);
+        }
 
-        const result = await contract.evaluateTransaction('querySensor', 1);
-        //contract.submitTransaction('createSensor', 1);
-        //contract.submitTransaction('createDetectionSensor', 1, 1, 'ascendent', 12);
-        //createDetectionSensor(ctx, numberSensor, sensorKilometer, direction, numberCars)
-
-        let detections = JSON.parse(result.toString())[0].Record.detectionsfilter((i) => {
-            return parseInt(toDate) <= i.detectionDateTime && i.detectionDateTime >= parseInt(fromDate);
-        });;
-
-        //console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
-        console.log(detections);
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
@@ -65,4 +71,9 @@ async function main() {
     }
 }
 
-main();
+if (argv._.includes('registerSensors')) {
+
+
+
+    main(argv.numberSensors);
+}
