@@ -63,6 +63,7 @@ async function main(numberSensors) {
 
             }, 100*i);
         }
+        await contract.submitTransaction('createStreetFlows', 1);
 
 
     } catch (error) {

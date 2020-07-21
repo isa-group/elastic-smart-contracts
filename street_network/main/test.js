@@ -13,13 +13,10 @@ let inde = "";
 
 
 async function main() {
-    if(2<3 && 3>1){
-        console.log("si")
-    }else{
-        console.log("no")
-    }
+   let a = [];
+   a.push(Date.now())
    
-
+    console.log(JSON.stringify(a));
 }
 
 main()

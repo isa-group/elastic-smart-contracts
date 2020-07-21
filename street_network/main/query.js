@@ -47,14 +47,17 @@ async function main() {
         //const result = await contract.evaluateTransaction('queryCalculate', 0, 999999999999999999999,1);
         //const result = await contract.evaluateTransaction('queryAllSensorsInRange' ,'4');
 
-        const result = await contract.evaluateTransaction('querySensor', 1);
+        //const result = await contract.evaluateTransaction('querySensor', 1);
+        const result = await contract.evaluateTransaction('queryStreetFlows', 1);
         //contract.submitTransaction('createSensor', 1);
+        //calculateFlowV2(ctx, streetFlow, timeData, fromDates, numberSensors)
+        let a = [];
+        a.push((1595349386361 + 32000));
+       //contract.submitTransaction('calculateFlowV2', result.toString(),32, JSON.stringify(a),  4);
         //contract.submitTransaction('createDetectionSensor', 1, 1, 'ascendent', 12);
         //createDetectionSensor(ctx, numberSensor, sensorKilometer, direction, numberCars)
 
-        let detections = JSON.parse(result.toString())[0].Record.detectionsfilter((i) => {
-            return parseInt(toDate) <= i.detectionDateTime && i.detectionDateTime >= parseInt(fromDate);
-        });;
+        let detections = JSON.parse(result.toString())[0].Record.flows[0];
 
         //console.log(`Transaction has been evaluated, result is: ${JSON.parse(result.toString()).length}`);
         console.log(detections);
