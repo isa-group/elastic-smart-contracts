@@ -314,11 +314,14 @@ class Street_network extends Contract {
         await ctx.stub.putState('SENSOR'+numberSensor, Buffer.from(JSON.stringify(sensor)));
     }
 
-    async createDetectionSensor(ctx, numberSensor, detections) {
+    async createDetectionSensor(ctx, numberSensor, detections, timeData) {
         let s = await this.querySensor(ctx, parseInt(numberSensor));
         let sensor = JSON.parse(s.toString())[0];
         let det = JSON.parse(detections);
-        
+        let time = Date.now();
+        sensor.Record.detections = sensor.Record.detections.filter((i) => {
+            return i.detectionDateTime >= (time - timeData*1000 - 10000);
+        });
         for(let i = 0; i< det.length; i++){
             sensor.Record.detections.push(det[i]);
         }
@@ -327,7 +330,8 @@ class Street_network extends Contract {
         await ctx.stub.putState(sensor.Key, Buffer.from(JSON.stringify(sensor.Record)));
 
         let event = {
-            type: 'detection'
+            type: 'detection',
+            numberSensor: parseInt(numberSensor),
         };
         await ctx.stub.setEvent('DetectionEvent', Buffer.from(JSON.stringify(event)));
     }
@@ -348,56 +352,61 @@ class Street_network extends Contract {
         let totalDetectionsEvent = [];
         let bySectionEvent = [];
         let totalEvent = [];
+        if(frmDates.length > 0){
 
-        for(let j=1; j<=numSens; j++){
-            let sensor = await this.querySensor(ctx, j);
-            sensors.push(JSON.parse(sensor.toString())[0]);
-        }
-
-        for(let k=0; k<frmDates.length; k++){
-            let fromDate = frmDates[k];
-            let toDate = fromDate - (1000* timeData);
-            
-            for(let l=0;l<sensors.length; l++){
-                let detections = sensors[l].Record.detections.filter((i) => {
-                    return parseInt(fromDate) >= i.detectionDateTime && i.detectionDateTime >= parseInt(toDate);
-                });
-                let numberCars = 0;
-                for(let i=0; i< detections.length; i++){
-                    numberCars +=  parseInt(detections[i].numberCars);
-                }
-                bySection.push(parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3)));
-                total += parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
-                totalDetections += numberCars;
+            for(let j=1; j<=numSens; j++){
+                let sensor = await this.querySensor(ctx, j);
+                sensors.push(JSON.parse(sensor.toString())[0]);
             }
-            bySectionEvent.push(bySection);
-            totalEvent.push(total/numberSensors);
-            totalDetectionsEvent.push(totalDetections);
-            let carFlow = {
-                streetId: strFlow.streetId,
-                dateFlow: {
-                    fromDate: parseInt(fromDate),
-                    toDate: parseInt(toDate)
-                },
-                carsPerSecond: {
-                    bySection,
-                    total: total/numSens
-                },
-                totalDetections,
-            };
-            strFlow.flows.push(carFlow)
-            bySection = [];
-            totalDetections = 0;
-            total = 0;
+    
+            for(let k=0; k<frmDates.length; k++){
+                let fromDate = frmDates[k];
+                let toDate = fromDate - (1000* timeData);
+                
+                for(let l=0;l<sensors.length; l++){
+                    let detections = sensors[l].Record.detections.filter((i) => {
+                        return parseInt(fromDate) >= i.detectionDateTime && i.detectionDateTime >= parseInt(toDate);
+                    });
+                    let numberCars = 0;
+                    for(let i=0; i< detections.length; i++){
+                        numberCars +=  parseInt(detections[i].numberCars);
+                    }
+                    bySection.push(parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3)));
+                    total += parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
+                    totalDetections += numberCars;
+                }
+                bySectionEvent.push(bySection);
+                totalEvent.push(total/numberSensors);
+                totalDetectionsEvent.push(totalDetections);
+                let carFlow = {
+                    streetId: strFlow.streetId,
+                    dateFlow: {
+                        fromDate: parseInt(fromDate),
+                        toDate: parseInt(toDate)
+                    },
+                    carsPerSecond: {
+                        bySection,
+                        total: total/numSens
+                    },
+                    totalDetections,
+                };
+                strFlow.flows.push(carFlow)
+                bySection = [];
+                totalDetections = 0;
+                total = 0;
+            }
+            
+    
+            await ctx.stub.putState('STREETFLOWS' + strFlow.streetId, Buffer.from(JSON.stringify(strFlow)));
+
         }
-        
-
-        await ctx.stub.putState('STREETFLOWS' + strFlow.streetId, Buffer.from(JSON.stringify(strFlow)));
-
         let totalEndHR = process.hrtime()
         let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
         let totalDuration = (totalEnd - totalBegin) / 1000;
 
+        if (frmDates.length == 0){
+            totalDuration = 0;
+        }
         let event = {
             totalDetections: totalDetectionsEvent,
             type: 'calculateFlow',

@@ -37,13 +37,18 @@ const argv = yargs
             description: 'frequency to insert data by sensors in seconds',
             alias: 'd',
             type: 'number',
+        },
+        timeData: {
+            description: 'number of seconds to get the data from now',
+            alias: 't',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency) {
+async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -85,14 +90,37 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
 
         let initialTime = Date.now();
 
-
-        let count = 0;
         let detections = [];
-   
+        let flowCommited = true;
+
+        const listener = await contract.addContractListener((event) => {
+
+            event = event.payload.toString();
+            event = JSON.parse(event); 
+            if (event.type === 'calculateFlow'){
+                flowCommited = true;
+            }
+            
+           
+        });
 
         let interval = setInterval(() => {
 
-            if(count < 8){
+            if( detections.length >= 5 && flowCommited){
+                let totalBeginHR = process.hrtime();
+                let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
+                flowCommited = false;
+                let submit = detections;
+                detections = [];
+    
+                contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData).then(() => {
+                    let totalEndHR = process.hrtime()
+                    let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
+                    let totalDuration = (totalEnd - totalBegin) / 1000;
+    
+                console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
+                });
+            }else{
                 let detection = {
                     detectionDateTime: Date.now(),
                     numberCars: inde.filter((i) => {
@@ -103,26 +131,12 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                     direction: 'ASCENDENT',
                 };
                 detections.push(detection);
-                count ++;
-            }else{
-                let totalBeginHR = process.hrtime();
-                let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
-                count = 0;
-                let submit = detections;
-                detections = [];
-    
-                contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit)).then(() => {
-                    let totalEndHR = process.hrtime()
-                    let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
-                    let totalDuration = (totalEnd - totalBegin) / 1000;
-    
-                console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
-                });
             }
         }, dataFrequency*1000);
         
         setTimeout(() => {
             clearInterval(interval);
+            contract.removeContractListener(listener);
             setTimeout(() => {
                 gateway.disconnect();
                 console.log("Disconnected");
@@ -143,7 +157,7 @@ if (argv._.includes('launchDetections')) {
 
 
 
-    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency);
+    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData);
 
 }
 
