@@ -99,7 +99,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 
             if (event.type === 'calculateFlow'){
                 for(let j = 0; j< event.totalDetections.length; j++){
-                    console.log('A flow has beeen calculated with a total number of '+ event.totalDetections[j] + ' detections');
+                    console.log('A flow has beeen calculated with a total number of '+ event.totalDetections[j] + ' detections and a duration of ' + event.execDuration + ' ms');
                     csvBody += `${numberSensors},${event.totalDetections[j]},${event.execDuration},[${event.carsPerSecondSection[j].toString().replace(/,/g,";")}],${event.carsPerSecondTotal[j]},${frequency},${timeData}\n`;
                 }
 

@@ -418,6 +418,17 @@ class Street_network extends Contract {
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
     }
 
+
+    async monitorTime(ctx, timeData, calculateTime, maxCalculateTime) {
+        
+        if(parseInt(calculateTime) >= parseInt(maxCalculateTime) - 10){
+            return JSON.parse(parseInt(timeData)/2);
+        }else{
+            return JSON.parse(timeData);
+        }
+    
+    }
+
     async querySensor2(ctx, numberSensor) {
         let res = await this.querySensor(ctx, numberSensor);
 

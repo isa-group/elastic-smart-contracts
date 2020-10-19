@@ -42,13 +42,18 @@ const argv = yargs
             description: 'number of seconds to get the data from now',
             alias: 't',
             type: 'number',
+        },
+        maxCalculationTime: {
+            description: 'maximum time allowed for calculation',
+            alias: 'c',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData) {
+async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -80,7 +85,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
         let velocities = [];
         let timeStart = [];
         let inde = []
-        await csv().fromFile('./cars2.csv').then((res) => {
+        await csv().fromFile('./cars4.csv').then((res) => {
             for (let i = 0; i < res.length; i++){
                 velocities.push(res[i].VELOCITY);
                 timeStart.push(res[i].TIME_START);
@@ -97,8 +102,18 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
 
             event = event.payload.toString();
             event = JSON.parse(event); 
+
             if (event.type === 'calculateFlow'){
                 flowCommited = true;
+                contract.submitTransaction('monitorTime', timeData, event.execDuration, maxCalculationTime).then((res) => {
+                    let newTime = JSON.parse(res.toString())
+                    if(newTime > 0 && newTime < timeData){
+                        timeData = newTime;
+                        console.log("New Time Data: " + timeData)
+                    }
+                });
+            
+
             }
             
            
@@ -139,7 +154,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
             contract.removeContractListener(listener);
             setTimeout(() => {
                 gateway.disconnect();
-                console.log("Disconnected");
+                console.log("Disconnected " + timeData);
 
 
             }, 5000);
@@ -157,7 +172,7 @@ if (argv._.includes('launchDetections')) {
 
 
 
-    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData);
+    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData, argv.maxCalculationTime);
 
 }
 
