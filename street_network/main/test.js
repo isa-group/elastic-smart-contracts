@@ -3,6 +3,7 @@ const csv = require('csvtojson');
 const fs = require('fs');
 const request = require('postman-request');
 const { constants } = require('buffer');
+const yargs = require('yargs');
 
 let velocities = [1,2,3];
 let timeStart = velocities;
@@ -10,9 +11,25 @@ velocities = [];
 let distance = [];
 let inde = "";
 
+const argv = yargs
+    .command('launchDetections', 'Generate detections during the given time', {
+        minTimeData: {
+            description: 'minimum time for timeData',
+            alias: 'mi',
+            type: 'number',
+        }
+      }
+    )
+.help().alias('help', 'h').argv;
+
+if (argv._.includes('launchDetections')) {
+
+    console.log(argv.minTimeData);
+
+}
 
 
-async function main() {
+/*async function main() {
    let a = [];
    a.push(Date.now())
    

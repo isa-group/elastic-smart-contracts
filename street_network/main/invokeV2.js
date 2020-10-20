@@ -45,7 +45,17 @@ const argv = yargs
         },
         maxCalculationTime: {
             description: 'maximum time allowed for calculation',
-            alias: 'c',
+            alias: 'maxc',
+            type: 'number',
+        },
+        minCalculationTime: {
+            description: 'minimum time allowed for calculation',
+            alias: 'minc',
+            type: 'number',
+        },
+        frequencyControlCalculate: {
+            description: 'frequency to control the calculate time',
+            alias: 'fcc',
             type: 'number',
         }
       }
@@ -53,7 +63,7 @@ const argv = yargs
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime) {
+async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime, minCalculationTime, frequencyControlCalculate) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -97,6 +107,9 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
 
         let detections = [];
         let flowCommited = true;
+        let warmUp = true;
+        let controlCount = 0;
+        let avgExecTime = 0;
 
         const listener = await contract.addContractListener((event) => {
 
@@ -105,18 +118,44 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
 
             if (event.type === 'calculateFlow'){
                 flowCommited = true;
-                contract.submitTransaction('monitorTime', timeData, event.execDuration, maxCalculationTime).then((res) => {
-                    let newTime = JSON.parse(res.toString())
-                    if(newTime > 0 && newTime < timeData){
-                        timeData = newTime;
-                        console.log("New Time Data: " + timeData)
-                    }
-                });
-            
+                if(warmUp){
 
-            }
-            
-           
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                    controlCount++;
+
+                    if(avgExecTime > minCalculationTime){
+
+                        warmUp = false;
+                        
+                    }else if(controlCount >= frequencyControlCalculate){
+                        controlCount = 0;
+                        avgExecTime = 0;
+                    }
+
+                }else if(!warmUp && controlCount >= frequencyControlCalculate){
+
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                    
+                    contract.submitTransaction('monitorTime', timeData, avgExecTime, maxCalculationTime, minCalculationTime).then((res) => {
+                        let newTime = JSON.parse(res.toString());
+                        if(newTime < 32){
+                            newTime = 32;
+                        }else if (newTime > 65536){
+                            newTime = 65536;
+                        }
+
+                        if(newTime > 0 && newTime != timeData){
+                            timeData = newTime;
+                            console.log("New Time Data: " + timeData)
+                        }
+                    });
+                    controlCount = 0;
+                    avgExecTime = 0;
+                }else if(!warmUp && controlCount < frequencyControlCalculate){
+                    controlCount++;
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                }
+            }         
         });
 
         let interval = setInterval(() => {
@@ -172,7 +211,7 @@ if (argv._.includes('launchDetections')) {
 
 
 
-    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData, argv.maxCalculationTime);
+    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData, argv.maxCalculationTime, argv.minCalculationTime, argv.frequencyControlCalculate);
 
 }
 

@@ -48,7 +48,7 @@ async function main() {
         //const result = await contract.evaluateTransaction('queryAllSensorsInRange' ,'4');
 
         //const result = await contract.evaluateTransaction('querySensor', 1);
-        const result = await contract.evaluateTransaction('monitorTime', 64, 900, 100);
+        const result = await contract.evaluateTransaction('monitorTime', 80, 55, 100, 50);
         //contract.submitTransaction('createSensor', 1);
         //calculateFlowV2(ctx, streetFlow, timeData, fromDates, numberSensors)
 

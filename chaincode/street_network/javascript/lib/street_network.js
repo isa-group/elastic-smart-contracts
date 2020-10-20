@@ -419,10 +419,12 @@ class Street_network extends Contract {
     }
 
 
-    async monitorTime(ctx, timeData, calculateTime, maxCalculateTime) {
+    async monitorTime(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
         
-        if(parseInt(calculateTime) >= parseInt(maxCalculateTime) - 10){
-            return JSON.parse(parseInt(timeData)/2);
+        if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
+            return JSON.parse(parseInt(timeData)*0.75);
+        }else if(parseInt(calculateTime) <= parseInt(minCalculateTime)*1.1){
+            return JSON.parse(parseInt(timeData)*1.25);
         }else{
             return JSON.parse(timeData);
         }
