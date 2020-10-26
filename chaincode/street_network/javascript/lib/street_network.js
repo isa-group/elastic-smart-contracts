@@ -390,14 +390,18 @@ class Street_network extends Contract {
                     },
                     totalDetections,
                 };
-                strFlow.flows.push(carFlow)
+                if(totalDetections > 0){
+                    strFlow.flows.push(carFlow);
+                }
                 bySection = [];
                 totalDetections = 0;
                 total = 0;
             }
             
-    
-            await ctx.stub.putState('STREETFLOWS' + strFlow.streetId, Buffer.from(JSON.stringify(strFlow)));
+            if(strFlow.flows.length > 0){
+                await ctx.stub.putState('STREETFLOWS' + strFlow.streetId, Buffer.from(JSON.stringify(strFlow)));
+            }
+
 
         }
         let totalEndHR = process.hrtime()
@@ -427,6 +431,18 @@ class Street_network extends Contract {
             return JSON.parse(parseInt(timeData)*1.25);
         }else{
             return JSON.parse(timeData);
+        }
+    
+    }
+
+    async monitorFrequency(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
+        
+        if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)*0.9){
+            return JSON.parse(parseFloat(frequency)*1.25);
+        }else if(parseFloat(calculateTime) <= parseFloat(minCalculateTime)*1.1){
+            return JSON.parse(parseFloat(frequency)*0.75);
+        }else{
+            return JSON.parse(frequency);
         }
     
     }

@@ -57,13 +57,18 @@ const argv = yargs
             description: 'frequency to control the calculate time',
             alias: 'fcc',
             type: 'number',
+        },
+        experimentNumber: {
+            description: 'experiment to execute',
+            alias: 'e',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime, minCalculationTime, frequencyControlCalculate) {
+async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime, minCalculationTime, frequencyControlCalculate, experimentNumber) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -111,54 +116,14 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
         let controlCount = 0;
         let avgExecTime = 0;
 
-        const listener = await contract.addContractListener((event) => {
+        if(experimentNumber == 2){
+            setTimeout(() => {
+                maxCalculationTime = maxCalculationTime/2;
+                minCalculationTime = minCalculationTime/2;
+            }, 1200000);
+        }
 
-            event = event.payload.toString();
-            event = JSON.parse(event); 
-
-            if (event.type === 'calculateFlow'){
-                flowCommited = true;
-                if(warmUp){
-
-                    avgExecTime += event.execDuration/frequencyControlCalculate;
-                    controlCount++;
-
-                    if(avgExecTime > minCalculationTime){
-
-                        warmUp = false;
-                        
-                    }else if(controlCount >= frequencyControlCalculate){
-                        controlCount = 0;
-                        avgExecTime = 0;
-                    }
-
-                }else if(!warmUp && controlCount >= frequencyControlCalculate){
-
-                    avgExecTime += event.execDuration/frequencyControlCalculate;
-                    
-                    contract.submitTransaction('monitorTime', timeData, avgExecTime, maxCalculationTime, minCalculationTime).then((res) => {
-                        let newTime = JSON.parse(res.toString());
-                        if(newTime < 32){
-                            newTime = 32;
-                        }else if (newTime > 65536){
-                            newTime = 65536;
-                        }
-
-                        if(newTime > 0 && newTime != timeData){
-                            timeData = newTime;
-                            console.log("New Time Data: " + timeData)
-                        }
-                    });
-                    controlCount = 0;
-                    avgExecTime = 0;
-                }else if(!warmUp && controlCount < frequencyControlCalculate){
-                    controlCount++;
-                    avgExecTime += event.execDuration/frequencyControlCalculate;
-                }
-            }         
-        });
-
-        let interval = setInterval(() => {
+        var interval = await setInterval(() => {
 
             if( detections.length >= 5 && flowCommited){
                 let totalBeginHR = process.hrtime();
@@ -187,13 +152,109 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                 detections.push(detection);
             }
         }, dataFrequency*1000);
+
+
+        const listener = await contract.addContractListener((event) => {
+
+            event = event.payload.toString();
+            event = JSON.parse(event); 
+
+            if (event.type === 'calculateFlow'){
+                flowCommited = true;
+                if(warmUp){
+
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                    controlCount++;
+
+                    if(avgExecTime > minCalculationTime){
+
+                        warmUp = false;
+                        
+                    }else if(controlCount >= frequencyControlCalculate){
+                        controlCount = 0;
+                        avgExecTime = 0;
+                    }
+
+                }else if(!warmUp && controlCount >= frequencyControlCalculate && experimentNumber < 3){
+
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                    
+                    contract.submitTransaction('monitorTime', timeData, avgExecTime, maxCalculationTime, minCalculationTime).then((res) => {
+                        let newTime = JSON.parse(res.toString());
+                        if(newTime < 32){
+                            newTime = 32;
+                        }else if (newTime > 65536){
+                            newTime = 65536;
+                        }
+
+                        if(newTime > 0 && newTime != timeData){
+                            timeData = newTime;
+                            console.log("New Time Data: " + timeData)
+                        }
+                    });
+                    controlCount = 0;
+                    avgExecTime = 0;
+                }else if(!warmUp && controlCount >= frequencyControlCalculate && experimentNumber >= 3){
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                    
+                    contract.submitTransaction('monitorFrequency', dataFrequency, avgExecTime, maxCalculationTime, minCalculationTime).then((res) => {
+                        let newTime = JSON.parse(res.toString());
+                        if(newTime < 0.1){
+                            newTime = 0.1;
+                        }else if (newTime > 60){
+                            newTime = 60;
+                        }
+
+                        if(newTime > 0 && newTime != dataFrequency){
+                            clearInterval(interval);
+                            dataFrequency = newTime;
+                            console.log("New Sensor Frequency: " + dataFrequency)
+                            interval = setInterval(() => {
+
+                                if( detections.length >= 5 && flowCommited){
+                                    let totalBeginHR = process.hrtime();
+                                    let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
+                                    flowCommited = false;
+                                    let submit = detections;
+                                    detections = [];
+                        
+                                    contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData).then(() => {
+                                        let totalEndHR = process.hrtime()
+                                        let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
+                                        let totalDuration = (totalEnd - totalBegin) / 1000;
+                        
+                                    console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
+                                    });
+                                }else{
+                                    let detection = {
+                                        detectionDateTime: Date.now(),
+                                        numberCars: inde.filter((i) => {
+                                            return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= (streetKilometers*numberSensor)/numberSensors &&
+                                             (velocities[i] * (Date.now() - initialTime - 1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
+                                        }).length,
+                                        sensorKilometer: (streetKilometers*numberSensor)/numberSensors,
+                                        direction: 'ASCENDENT',
+                                    };
+                                    detections.push(detection);
+                                }
+                            }, dataFrequency*1000);
+                        }
+                    });
+                    controlCount = 0;
+                    avgExecTime = 0;
+                }else if(!warmUp && controlCount < frequencyControlCalculate){
+                    controlCount++;
+                    avgExecTime += event.execDuration/frequencyControlCalculate;
+                }
+            }         
+        });
         
         setTimeout(() => {
             clearInterval(interval);
             contract.removeContractListener(listener);
             setTimeout(() => {
                 gateway.disconnect();
-                console.log("Disconnected " + timeData);
+                console.log("Disconnected " + dataFrequency);
 
 
             }, 5000);
@@ -211,7 +272,8 @@ if (argv._.includes('launchDetections')) {
 
 
 
-    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData, argv.maxCalculationTime, argv.minCalculationTime, argv.frequencyControlCalculate);
+    main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData,
+         argv.maxCalculationTime, argv.minCalculationTime, argv.frequencyControlCalculate, argv.experimentNumber);
 
 }
 

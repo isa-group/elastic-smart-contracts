@@ -28,6 +28,13 @@ if (argv._.includes('launchDetections')) {
 
 }
 
+function name(s) {
+    function name2(s) {
+        return s*2;
+    }
+    return name2(s);
+}
+console.log(name(1));
 
 /*async function main() {
    let a = [];
