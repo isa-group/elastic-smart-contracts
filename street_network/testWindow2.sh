@@ -9,7 +9,7 @@ docker network connect net_test $(docker ps -a -q --filter ancestor=prom/prometh
 cd main
 sleep 1
 ./register.sh 4
-node listenerV2.js launchListener -n 4 -m 1800 -f 8 -t 1800 -p testWindow_2 &
+node listenerV2.js launchListener -n 4 -m 1800 -f 8 -t 1800 -p testWindow_2_LowDensity &
 WR=$!
 sleep 1
 for i in $(seq 1 1 4)

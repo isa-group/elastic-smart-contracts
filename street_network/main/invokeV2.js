@@ -116,13 +116,6 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
         let controlCount = 0;
         let avgExecTime = 0;
 
-        if(experimentNumber == 2){
-            setTimeout(() => {
-                maxCalculationTime = maxCalculationTime/2;
-                minCalculationTime = minCalculationTime/2;
-            }, 1200000);
-        }
-
         var interval = await setInterval(() => {
 
             if( detections.length >= 5 && flowCommited){
@@ -132,7 +125,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                 let submit = detections;
                 detections = [];
     
-                contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData).then(() => {
+                contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData, dataFrequency).then(() => {
                     let totalEndHR = process.hrtime()
                     let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                     let totalDuration = (totalEnd - totalBegin) / 1000;
@@ -175,7 +168,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                         avgExecTime = 0;
                     }
 
-                }else if(!warmUp && controlCount >= frequencyControlCalculate && experimentNumber < 3){
+                }else if(!warmUp && controlCount >= frequencyControlCalculate && experimentNumber == 2){
 
                     avgExecTime += event.execDuration/frequencyControlCalculate;
                     
@@ -218,7 +211,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                                     let submit = detections;
                                     detections = [];
                         
-                                    contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData).then(() => {
+                                    contract.submitTransaction('createDetectionSensor', numberSensor, JSON.stringify(submit), timeData, dataFrequency).then(() => {
                                         let totalEndHR = process.hrtime()
                                         let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                                         let totalDuration = (totalEnd - totalBegin) / 1000;

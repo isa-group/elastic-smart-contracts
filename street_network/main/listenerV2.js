@@ -74,7 +74,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         let resultFile = "./results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultFile, (err, data) => {
             if(err){
-                csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA\n";
+                csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED\n";
             }else{
                 csvBody = data;
             }
@@ -100,7 +100,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
             if (event.type === 'calculateFlow'){
                 for(let j = 0; j< event.totalDetections.length; j++){
                     console.log('A flow has beeen calculated with a total number of '+ event.totalDetections[j] + ' detections and a duration of ' + event.execDuration + ' ms');
-                    csvBody += `${numberSensors},${event.totalDetections[j]},${event.execDuration},[${event.carsPerSecondSection[j].toString().replace(/,/g,";")}],${event.carsPerSecondTotal[j]},${frequency},${timeData}\n`;
+                    csvBody += `${numberSensors},${event.totalDetections[j]},${event.execDuration},[${event.carsPerSecondSection[j].toString().replace(/,/g,";")}],${event.carsPerSecondTotal[j]},${frequency},${event.timeData},${event.frequencyData},${event.totalDetectionsStoredList[j]}\n`;
                 }
 
                 console.log(`CalculateFlow event detected, waiting ${frequency} seconds to launch transaction`);
@@ -116,7 +116,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 
                     if(count == numberSensors){
                         console.log("Launching calculateFlow transaction");
-                        calculateFlow(timeData, JSON.stringify(calculationDates), numberSensors);
+                        calculateFlow(event.timeData, JSON.stringify(calculationDates), numberSensors, event.frequency);
                         calculationDates = [];
                         count = 0;
                     }                  
@@ -184,7 +184,7 @@ if (argv._.includes('launchListener')) {
     main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix);
 }
 
-async function calculateFlow(timeData, fromDate, numberSensors) {
+async function calculateFlow(timeData, fromDate, numberSensors, frequency) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -217,7 +217,7 @@ async function calculateFlow(timeData, fromDate, numberSensors) {
 
 
         // Submit the specified transaction.
-        await contract.submitTransaction('calculateFlowV2', result.toString(), timeData, fromDate, numberSensors);
+        await contract.submitTransaction('calculateFlowV2', result.toString(), timeData, fromDate, numberSensors, frequency);
 
         // Disconnect from the gateway.
         await gateway.disconnect();

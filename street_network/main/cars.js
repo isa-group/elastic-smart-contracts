@@ -107,7 +107,7 @@ if (argv._.includes('generateCarsVariableDensity')) {
         }
         
     }
-    fs.writeFileSync('./cars4.csv', csvBody,'utf8');
+    fs.writeFileSync('./cars5.csv', csvBody,'utf8');
 }
 
 /*let interval = setInterval(() => {
@@ -154,5 +154,3 @@ setTimeout(() => {
         console.log(error);
     }
 });*/
-
-console.log(parseInt(2.3))

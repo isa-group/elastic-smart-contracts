@@ -314,7 +314,7 @@ class Street_network extends Contract {
         await ctx.stub.putState('SENSOR'+numberSensor, Buffer.from(JSON.stringify(sensor)));
     }
 
-    async createDetectionSensor(ctx, numberSensor, detections, timeData) {
+    async createDetectionSensor(ctx, numberSensor, detections, timeData, frequency) {
         let s = await this.querySensor(ctx, parseInt(numberSensor));
         let sensor = JSON.parse(s.toString())[0];
         let det = JSON.parse(detections);
@@ -332,12 +332,14 @@ class Street_network extends Contract {
         let event = {
             type: 'detection',
             numberSensor: parseInt(numberSensor),
+            timeData: timeData,
+            frequency: frequency
         };
         await ctx.stub.setEvent('DetectionEvent', Buffer.from(JSON.stringify(event)));
     }
 
 
-    async calculateFlowV2(ctx, streetFlow, timeData, fromDates, numberSensors) {
+    async calculateFlowV2(ctx, streetFlow, timeData, fromDates, numberSensors, frequency) {
         let totalBeginHR = process.hrtime();
         let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
@@ -348,6 +350,8 @@ class Street_network extends Contract {
         let totalDetections = 0;
         let total = 0;
         let numSens = parseInt(numberSensors);
+        let totalDetectionsStored = 0;
+        let totalDetectionsStoredList = [];
 
         let totalDetectionsEvent = [];
         let bySectionEvent = [];
@@ -364,6 +368,8 @@ class Street_network extends Contract {
                 let toDate = fromDate - (1000* timeData);
                 
                 for(let l=0;l<sensors.length; l++){
+                    totalDetectionsStored += sensors[l].Record.detections.length;
+
                     let detections = sensors[l].Record.detections.filter((i) => {
                         return parseInt(fromDate) >= i.detectionDateTime && i.detectionDateTime >= parseInt(toDate);
                     });
@@ -375,6 +381,7 @@ class Street_network extends Contract {
                     total += parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
                     totalDetections += numberCars;
                 }
+                totalDetectionsStoredList.push(totalDetectionsStored);
                 bySectionEvent.push(bySection);
                 totalEvent.push(total/numberSensors);
                 totalDetectionsEvent.push(totalDetections);
@@ -396,6 +403,7 @@ class Street_network extends Contract {
                 bySection = [];
                 totalDetections = 0;
                 total = 0;
+                totalDetectionsStored = 0;
             }
             
             if(strFlow.flows.length > 0){
@@ -416,7 +424,10 @@ class Street_network extends Contract {
             type: 'calculateFlow',
             execDuration: totalDuration,
             carsPerSecondSection: bySectionEvent,
-            carsPerSecondTotal: totalEvent
+            carsPerSecondTotal: totalEvent,
+            timeData: timeData,
+            frequencyData: frequency,
+            totalDetectionsStoredList: totalDetectionsStoredList
 
         };
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
