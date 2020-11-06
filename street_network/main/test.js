@@ -4,12 +4,13 @@ const fs = require('fs');
 const request = require('postman-request');
 const { constants } = require('buffer');
 const yargs = require('yargs');
+//const request = require('request');
 
-let velocities = [1,2,3];
-let timeStart = velocities;
+let velocities = [];
+let timeStart = [];
 velocities = [];
 let distance = [];
-let inde = "";
+let inde = [];
 
 const argv = yargs
     .command('launchDetections', 'Generate detections during the given time', {
@@ -28,13 +29,6 @@ if (argv._.includes('launchDetections')) {
 
 }
 
-function name(s) {
-    function name2(s) {
-        return s*2;
-    }
-    return name2(s);
-}
-console.log(name(1));
 
 /*async function main() {
    let a = [];
@@ -43,20 +37,39 @@ console.log(name(1));
     console.log(JSON.stringify(a));
 }
 
-main()
+main()*/
 
-/*csv().fromFile('./cars.csv').then((res) => {
-    for (let i = 82; i < res.length; i++){
+
+
+/*csv().fromFile('./cars4.csv').then((res) => {
+    for (let i = 0; i < res.length; i++){
         velocities.push(res[i].VELOCITY);
         timeStart.push(res[i].TIME_START);
-        distance.push((res[i].VELOCITY/3.6)*(256-(res[i].TIME_START/1000)));
-        let v = (Math.random()*50+20);
+        inde.push(i);
         
         
     }
-    console.log(distance);
+
+    fs.writeFileSync("./testV.csv", JSON.stringify(velocities),'utf8');
+    fs.writeFileSync("./testT.csv", JSON.stringify(timeStart),'utf8');
+    fs.writeFileSync("./testI.csv", JSON.stringify(inde),'utf8');
+});*/
+
+
+
+let y = 0;
+request('http://dummy.restapiexample.com/api/v1/employees', function (error, response, body) {
+    if(!error){
+        y= JSON.parse(body).data;
+    } else {
+        y= error;
+    }
 });
 
+    console.log(y) 
+
+
+/*
 let initialTime = Date.now();
 
 let interval = setInterval(() => {

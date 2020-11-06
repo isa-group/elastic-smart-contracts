@@ -45,15 +45,15 @@ async function main() {
         //const result = await contract.evaluateTransaction('queryAllDetections');
         //const result = await contract.evaluateTransaction('queryAllFlows');
         //const result = await contract.evaluateTransaction('queryCalculate', 0, 999999999999999999999,1);
-        //const result = await contract.evaluateTransaction('queryAllSensorsInRange' ,'4');
+        //const result = await contract.evaluateTransaction('querySensor' ,1);
 
         //const result = await contract.evaluateTransaction('querySensor', 1);
-        const result = await contract.evaluateTransaction('monitorTime', 80, 55, 100, 50);
+        //const result = await contract.submitTransaction('orquestator', 4, 1, 100, 1, 1800, 100, 50,5, 1, 8);
         //contract.submitTransaction('createSensor', 1);
         //calculateFlowV2(ctx, streetFlow, timeData, fromDates, numberSensors)
-
+        const result = await contract.evaluateTransaction('requestTest');
        //contract.submitTransaction('calculateFlowV2', result.toString(),32, JSON.stringify(a),  4);
-        //contract.submitTransaction('createDetectionSensor', 1, 1, 'ascendent', 12);
+        //contract.submitTransaction('bucle', 1, [23], 100, 1);
         //createDetectionSensor(ctx, numberSensor, sensorKilometer, direction, numberCars)
 
         let detections = JSON.parse(result.toString());
