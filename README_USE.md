@@ -73,8 +73,14 @@ There are 3 principal graphics made to use the results data from the calculation
 
 1. Comparison between the calculated flow, the real flow and the real instantaneous flow:
 
+![dataSource](images/graph1.png)
+
 2. Graphic used to observe how the amount of detections objects stored affects the execution time:
 
+![dataSource](images/graph2.png)
+
 3. Graphic comparing the changes to frequency update or time window and the calculation of cars per second, to see how it affects the calculation  result:
+
+![dataSource](images/graph3.png)
 
 
