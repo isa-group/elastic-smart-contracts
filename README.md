@@ -2,7 +2,7 @@ This guide has used Ubuntu 18.04
 
 Note: if some of the commands given return an error, try: sudo apt update
 
-# Usage instructions
+# Installation instructions
 
 
 1. Install Git if you don not have it already:
@@ -61,14 +61,6 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.18
     this will cause the scripts to always point to the binaries placed at elastic-smart-contracts, regardless of being in a new terminal.
     
     (bin is already in the .gitignore file but you should be careful not to upload the uncommented line of network.sh)
-
-9. go to **elastic-smart-contracts/street-network/main** and run: 
-```
-npm install
-./launchExperiments.sh
-```
-
-10. Wait for the network to start up and run the experiments! Once it is finished it will shut down itself.
 
 
 
