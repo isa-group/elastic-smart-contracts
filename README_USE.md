@@ -66,3 +66,15 @@ Two .csv files will be generated for each experiments, one containing the analyt
 - **MINIMUM_TIME**: minimum execution time established by elasticity rules.
 
 - **MAXIMUM_TIME**: maximum execution time established by elasticity rules.
+
+# Data usage
+
+There are 3 principal graphics made to use the results data from the calculations result csv file, but these are just examples as more you can have more uses for the data:
+
+1. Comparison between the calculated flow, the real flow and the real instantaneous flow:
+
+2. Graphic used to observe how the amount of detections objects stored affects the execution time:
+
+3. Graphic comparing the changes to frequency update or time window and the calculation of cars per second, to see how it affects the calculation  result:
+
+
