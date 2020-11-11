@@ -137,7 +137,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                     detectionDateTime: Date.now(),
                     numberCars: inde.filter((i) => {
                         return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= (streetKilometers*numberSensor)/numberSensors &&
-                         (velocities[i] * (Date.now() - initialTime - 1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
+                         (velocities[i] * (Date.now() - initialTime - dataFrequency*1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
                     }).length,
                     sensorKilometer: (streetKilometers*numberSensor)/numberSensors,
                     direction: 'ASCENDENT',
@@ -219,11 +219,12 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
                                     console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
                                     });
                                 }else{
+                                    let date = Date.now()
                                     let detection = {
-                                        detectionDateTime: Date.now(),
+                                        detectionDateTime: date,
                                         numberCars: inde.filter((i) => {
-                                            return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= (streetKilometers*numberSensor)/numberSensors &&
-                                             (velocities[i] * (Date.now() - initialTime - 1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
+                                            return (velocities[i] * (date - initialTime - timeStart[i])/3600000) >= (streetKilometers*numberSensor)/numberSensors &&
+                                             (velocities[i] * (date - initialTime - dataFrequency*1000 - timeStart[i])/3600000) < (streetKilometers*numberSensor)/numberSensors;
                                         }).length,
                                         sensorKilometer: (streetKilometers*numberSensor)/numberSensors,
                                         direction: 'ASCENDENT',

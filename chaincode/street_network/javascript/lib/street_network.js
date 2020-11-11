@@ -420,6 +420,7 @@ class Street_network extends Contract {
             totalDuration = 0;
         }
         let event = {
+            fromDates: frmDates,
             totalDetections: totalDetectionsEvent,
             type: 'calculateFlow',
             execDuration: totalDuration,

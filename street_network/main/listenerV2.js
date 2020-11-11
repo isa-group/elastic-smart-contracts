@@ -8,6 +8,7 @@ const yargs = require('yargs');
 const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const csv = require('csvtojson');
 
 const argv = yargs
     .command('launchListener', 'Generate flow calculations during the given time', {
@@ -35,12 +36,27 @@ const argv = yargs
             description: 'prefix for the csv to use',
             alias: 'p',
             type: 'string',
+        },
+        maxCalculationTime: {
+            description: 'maximum time allowed for calculation',
+            alias: 'maxc',
+            type: 'number',
+        },
+        minCalculationTime: {
+            description: 'minimum time allowed for calculation',
+            alias: 'minc',
+            type: 'number',
+        },
+        streetKilometers: {
+            description: 'number of kilometers of the street',
+            alias: 's',
+            type: 'number',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
-async function main(numberSensors, minutes, frequency, timeData, prefix) {
+async function main(numberSensors, minutes, frequency, timeData, prefix, minimumTime, maximumTime, streetKilometers) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -69,12 +85,25 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         // Get the contract from the network.
         const contract = network.getContract('street_network');
 
+        let velocities = [];
+        let timeStart = [];
+        let inde = [];
+        let initialTime = Date.now()
+
+        csv().fromFile('./cars4.csv').then((res) => {
+            for (let i = 0; i < res.length; i++){
+                velocities.push(res[i].VELOCITY);
+                timeStart.push(res[i].TIME_START);
+                inde.push(i); 
+            }
+        });
+
         let csvBody = "";
         let csvBodyCalculated = "";
         let resultFile = "./results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultFile, (err, data) => {
             if(err){
-                csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED\n";
+                csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,REAL_CARS_PER_SECOND,REAL_CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME\n";
             }else{
                 csvBody = data;
             }
@@ -82,7 +111,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         let resultCalculatedFile = "./results/" + prefix + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultCalculatedFile, (err, data) => {
             if(err){
-                csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS\n";
+                csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n";
             }else{
                 csvBodyCalculated = data;
             }
@@ -91,6 +120,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
         let calculationDates = [];
         let fromDate = Date.now();
         let count = 0;
+        let countCalculationsOverMax = 0;
 
         const listener = await contract.addContractListener((event) => {
 
@@ -98,9 +128,64 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
             event = JSON.parse(event); 
 
             if (event.type === 'calculateFlow'){
+
+                let totalInstant = 0;
+                let totalTimeData = 0;
+                timeData = event.timeData;
+
                 for(let j = 0; j< event.totalDetections.length; j++){
+                    let before_instant = []
+                    let before_timeData = []
+                    let after = []
+                    let d = Date.now()
+                    for (let i = 0; i < inde.length; i++) {
+                         after.push(velocities[i] * (d - initialTime - timeStart[i])/3600);
+                         before_instant.push(velocities[i] * (d - initialTime - 1000 - timeStart[i])/3600);
+                         if(((d - initialTime - (timeData*1000)) < timeStart[i]) && timeStart[i] < d - initialTime){
+                            before_timeData.push(velocities[i] * (d - initialTime - (timeData*1000) - timeStart[i])/3600);
+                         }
+                    };
+                    for (let i = 0; i < before_instant.length; i++) {
+                        if((before_instant[i] >= 0 || after[i] >= 0) && before_instant[i] < 1000*streetKilometers){
+                            if(before_instant[i] <= 0){
+                                if(after[i] >= 1000*streetKilometers){
+                                    totalInstant+= 1000;
+                                }else{
+                                    totalInstant+= after[i];
+                                }
+                
+                            }else{
+                                totalInstant+= after[i] -before_instant[i];
+                            }
+                    
+                        }      
+                        
+                    }
+                    for (let i = 0; i < before_timeData.length; i++) {
+                        if((before_timeData[i] >= 0 || after[i] >= 0) && before_timeData[i] < 1000*streetKilometers){
+                            if(before_timeData[i] <= 0){
+                                if(after[i] >= 1000*streetKilometers){
+                                    totalTimeData+= 1000*streetKilometers;
+                                }else{
+                                    totalTimeData+= after[i];
+                                }
+                
+                            }else{
+                                totalTimeData+= after[i] - before_timeData[i];
+                            }
+                    
+                        }      
+                    
+                    }
+
+                    if(maximumTime*1.5 < event.execDuration){
+                        countCalculationsOverMax++;
+                    }
+
                     console.log('A flow has beeen calculated with a total number of '+ event.totalDetections[j] + ' detections and a duration of ' + event.execDuration + ' ms');
-                    csvBody += `${numberSensors},${event.totalDetections[j]},${event.execDuration},[${event.carsPerSecondSection[j].toString().replace(/,/g,";")}],${event.carsPerSecondTotal[j]},${frequency},${event.timeData},${event.frequencyData},${event.totalDetectionsStoredList[j]}\n`;
+                    csvBody += `${numberSensors},${event.totalDetections[j]},${event.execDuration},[${event.carsPerSecondSection[j].toString().replace(/,/g,";")}],${event.carsPerSecondTotal[j]},${totalInstant/(1000*streetKilometers)},${totalTimeData/(1000*timeData*streetKilometers)},${frequency},${event.timeData},${event.frequencyData},${event.totalDetectionsStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${minimumTime},${maximumTime}\n`;
+                    totalInstant = 0;
+                    totalTimeData = 0;
                 }
 
                 console.log(`CalculateFlow event detected, waiting ${frequency} seconds to launch transaction`);
@@ -165,7 +250,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
             .reduce((a,b)=> {
                 return a+b;
             });
-            csvBodyCalculated += `${numberSensors},${frequency},${timeData},${min},${max},${avg},${Math.sqrt(stdev)},${execTimes.length}\n`;
+            csvBodyCalculated += `${numberSensors},${frequency},${timeData},${min},${max},${avg},${Math.sqrt(stdev)},${execTimes.length},${countCalculationsOverMax}\n`;
             fs.writeFileSync(resultCalculatedFile, csvBodyCalculated,'utf8');
             return true;
         }, minutes*1000 + 10000);
@@ -181,7 +266,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix) {
 }
 
 if (argv._.includes('launchListener')) {
-    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix);
+    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix, argv.minCalculationTime, argv.maxCalculationTime, argv.streetKilometers);
 }
 
 async function calculateFlow(timeData, fromDate, numberSensors, frequency) {

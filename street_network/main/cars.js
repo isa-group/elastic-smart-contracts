@@ -98,16 +98,16 @@ if (argv._.includes('generateCarsVariableDensity')) {
     }
     for(i = 0; i < numberCars; i++){
         if(i<=parseInt(numberCars/5)){
-            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000+3454718).toFixed(0)+"\n";
         }else if(i>=parseInt(numberCars*4/5)){
-            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 1272000).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 1272000+3454718).toFixed(0)+"\n";
         }else{
             //csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000).toFixed(0)+"\n";
-            csvBody += velocities[i] + "," + ((((parseInt(numberCars/5)+(i-parseInt(numberCars/5))/3)*5/numberCars) * argv.time/3*1000) - 72000).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + ((((parseInt(numberCars/5)+(i-parseInt(numberCars/5))/3)*5/numberCars) * argv.time/3*1000) - 72000+3454718).toFixed(0)+"\n";
         }
         
     }
-    fs.writeFileSync('./cars5.csv', csvBody,'utf8');
+    fs.writeFileSync('./cars6.csv', csvBody,'utf8');
 }
 
 /*let interval = setInterval(() => {
@@ -154,3 +154,5 @@ setTimeout(() => {
         console.log(error);
     }
 });*/
+
+console.log(parseInt(2.3))

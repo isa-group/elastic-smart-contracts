@@ -5,11 +5,7 @@ const request = require('postman-request');
 const { constants } = require('buffer');
 const yargs = require('yargs');
 
-let velocities = [1,2,3];
-let timeStart = velocities;
-velocities = [];
-let distance = [];
-let inde = "";
+
 
 const argv = yargs
     .command('launchDetections', 'Generate detections during the given time', {
@@ -28,13 +24,7 @@ if (argv._.includes('launchDetections')) {
 
 }
 
-function name(s) {
-    function name2(s) {
-        return s*2;
-    }
-    return name2(s);
-}
-console.log(name(1));
+
 
 /*async function main() {
    let a = [];
@@ -43,20 +33,67 @@ console.log(name(1));
     console.log(JSON.stringify(a));
 }
 
-main()
+main()*/
 
-/*csv().fromFile('./cars.csv').then((res) => {
-    for (let i = 82; i < res.length; i++){
+let velocities = [];
+let timeStart = [];
+let inde = [];
+let initialTime = Date.now()
+
+csv().fromFile('./cars5.csv').then((res) => {
+    for (let i = 0; i < res.length; i++){
         velocities.push(res[i].VELOCITY);
         timeStart.push(res[i].TIME_START);
-        distance.push((res[i].VELOCITY/3.6)*(256-(res[i].TIME_START/1000)));
-        let v = (Math.random()*50+20);
+        inde.push(i);
         
         
     }
-    console.log(distance);
 });
+let flow = 0;
+let total = 0;
+let count = 0;
+let count2 = 0;
 
+let t = []
+setInterval(() => {
+    let before = []
+    let before_timeData = []
+    let after = []
+    let d = Date.now()+2380000
+    for (let i = 0; i < inde.length; i++) {
+         after.push(velocities[i] * (d - initialTime - timeStart[i])/3600);
+         before.push(velocities[i] * (d - initialTime - 1000 - timeStart[i])/3600);
+         if(((d - initialTime - (1800*1000)) < timeStart[i]) && timeStart[i] < d - initialTime){
+            before_timeData.push(velocities[i] * (d - initialTime - (1800*1000) - timeStart[i])/3600);
+         }
+    };
+    for (let i = 0; i < before_timeData.length; i++) {
+        if((before_timeData[i] >= 0 || after[i] >= 0) && before_timeData[i] < 1000){
+            count++;
+            if(before_timeData[i] <= 0){
+                if(after[i] >= 1000){
+                    t.push([before_timeData[i], after[i],timeStart[i]])
+                    total+= 1000;
+                }else{
+                    t.push([before_timeData[i], after[i],timeStart[i]])
+                    total+= after[i];
+                }
+
+            }else{
+                t.push([before_timeData[i], after[i],timeStart[i]])
+                total+= after[i] -before_timeData[i];
+            }
+    
+        }      
+        
+    }
+    console.log(total/(1800*1000))
+    total = 0;
+    count = 0;
+    count2 = 0;
+ 
+}, 1000);
+/*
 let initialTime = Date.now();
 
 let interval = setInterval(() => {
