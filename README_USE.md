@@ -71,15 +71,15 @@ Two .csv files will be generated for each experiments, one containing the analyt
 
 There are 3 principal graphics made to use the results data from the calculations result csv file, but these are just examples as more you can have more uses for the data:
 
-1. Comparison between the calculated flow, the real flow and the real instantaneous flow:
+1. Comparison between the calculated flow (**CARS_PER_SECOND_TOTAL**), the real flow (**REAL_CARS_PER_SECOND_TOTAL**) and the real instantaneous flow (**REAL_CARS_PER_SECOND**):
 
 ![dataSource](images/graph1.png)
 
-2. Graphic used to observe how the amount of detections objects stored affects the execution time:
+2. Graphic used to observe how the amount of detections objects stored (**DETECTIONS_STORED**) affects the execution time (**TOTAL_TIME**) :
 
 ![dataSource](images/graph2.png)
 
-3. Graphic comparing the changes to frequency update or time window and the calculation of cars per second, to see how it affects the calculation  result:
+3. Graphic comparing the changes to frequency update (**FREQUENCY_DATA**) or time window (**TIME_DATA**) and the calculation of cars per second (**CARS_PER_SECOND_TOTAL** and **REAL_CARS_PER_SECOND_TOTAL**) , to see how it affects the calculation  result, the next one compares it against time window:
 
 ![dataSource](images/graph3.png)
 
