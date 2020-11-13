@@ -205,7 +205,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix, minimum
                         calculationDates = [];
                         count = 0;
                     }                  
-                }, event.numberSensor*10);
+                }, event.numberSensor*100);
          
             }   
            
