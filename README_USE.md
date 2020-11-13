@@ -2,7 +2,7 @@
 
 1. Please read the README.md file first and install all necessary components first
 
-2. go to **elastic-smart-contracts/street-network/ExperimentSetElasticity** and run ./launchExperimentsElastic.sh with the necessary parameters, if you run it without any, an error message will appear explaining each parameter:
+2. go to **elastic-smart-contracts/ESC-network/ExperimentSetElasticity** and run ./launchExperimentsElastic.sh with the necessary parameters, if you run it without any, an error message will appear explaining each parameter:
 
 - **Number of sensors**: number of sensors to simulate in the experiments.
 
@@ -34,7 +34,7 @@ For each one of those experiments 2 CSV files will be generated in the "results"
 
 3. Wait for the network to start up and run the experiments! Once it is finished it will shut down itself. The estimated duration of these experiments is between three and three and a half hours
 
-4. The results will be written in a series of .csv files inside **elastic-smart-contracts/street-network/main/results**
+4. The results will be written in a series of .csv files inside **elastic-smart-contracts/ESC-network/main/results**
 
 # Results interpretation
 
