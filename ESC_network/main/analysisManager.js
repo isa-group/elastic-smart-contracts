@@ -90,7 +90,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix, minimum
         let inde = [];
         let initialTime = Date.now()
 
-        csv().fromFile('./cars4.csv').then((res) => {
+        csv().fromFile('./defaultData.csv').then((res) => {
             for (let i = 0; i < res.length; i++){
                 velocities.push(res[i].VELOCITY);
                 timeStart.push(res[i].TIME_START);

@@ -100,7 +100,7 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
         let velocities = [];
         let timeStart = [];
         let inde = []
-        await csv().fromFile('./cars4.csv').then((res) => {
+        await csv().fromFile('./defaultData.csv').then((res) => {
             for (let i = 0; i < res.length; i++){
                 velocities.push(res[i].VELOCITY);
                 timeStart.push(res[i].TIME_START);

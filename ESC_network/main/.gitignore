@@ -78,3 +78,6 @@ typings/
 
 wallet
 !wallet/.gitkeep
+
+test.js
+query.js
