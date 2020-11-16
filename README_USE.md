@@ -1,4 +1,4 @@
-# Usage instruction
+# Experiments configuration and execution
 
 1. Please read the README.md file first and install all necessary components first
 
