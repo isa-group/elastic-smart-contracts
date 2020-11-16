@@ -96,3 +96,7 @@ This will start the prometheus container if you already have it or run it otherw
 5. Import the Grafana dashboard through the Json file contained within the prometheus folder.
 
 6. Run any experiment to see the results.
+
+# Usage instructions
+
+In order to learn how to use the system to its fullest, please check the [Usage_Readme](README_USE.md)
