@@ -1,10 +1,11 @@
-This guide has used Ubuntu 18.04
 
-Note: if some of the commands given return an error, try: sudo apt update
 
 # Installation instructions
 
+## Requirements
+This guide has been developed in Ubuntu 18.04. It is recommended to update the system packages before starting the installation procedure (with: ```sudo apt update```)
 
+## Steps
 1. Install Git if you don not have it already:
 
 2. Download and install cURL: https://curl.haxx.se/download.html
@@ -67,8 +68,14 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.1.0 1.4.6 0.4.18
 npm install
 ```
 
+# Elasticity experiments execution
 
-# Prometheus monitoring
+In order to configurate and run an experiment , please check the [Experiments Guide](README_USE.md)
+
+
+
+# Performance Monitoring
+In order to analyze the general performance of the chain, prometheus ecosystem can be installed: 
 
 1. Once you have cloned the elastic smart contracts repository you can see a file named **prometheus.yml** inside a folder called **prometheus**.
 
@@ -95,8 +102,5 @@ This will start the prometheus container if you already have it or run it otherw
 
 5. Import the Grafana dashboard through the Json file contained within the prometheus folder.
 
-6. Run any experiment to see the results.
+6. [Run any experiment](README_USE.md) to see the results.
 
-# Usage instructions
-
-In order to learn how to use the system to its fullest, please check the [Usage_Readme](README_USE.md)
