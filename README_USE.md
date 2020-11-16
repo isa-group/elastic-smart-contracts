@@ -31,10 +31,9 @@ Each one of these parameters must be given in order, an example of a correct use
 The parameters of this example are the same used in the graphs shown at the end of the document. The script will execute 3 experiments so be aware that the execution time you use will be multiplied by 3.
 
 For each one of those experiments 2 CSV files will be generated in the "results" folder with a timestamp of the execution date and a prefix for each experiment: "testNoElastic", "testFrequency" and "testTimeWindow". the three experiment test the system without any elasticity, with the frequency of update of sensors as elasticity parameter and the time window for the data to be stored as elasticity parameter, respectively.
+Wait for the network to start up and run the experiments! Once it is finished it will shut down itself. The estimated duration of these experiments is between three and three and a half hours. The results will be written in a series of .csv files inside ``elastic-smart-contracts/ESC-network/main/results``.
 
-3. Wait for the network to start up and run the experiments! Once it is finished it will shut down itself. The estimated duration of these experiments is between three and three and a half hours
-
-4. The results will be written in a series of .csv files inside **elastic-smart-contracts/ESC-network/main/results**
+The simlated sensor data for the experiment can be configured in the file [defaultData.csv](https://github.com/isa-group/elastic-smart-contracts/blob/master/ESC_network/main/defaultData.csv); in the current scenario, each row represent the speed and relative arrival time for each car.  
 
 # Results interpretation
 
