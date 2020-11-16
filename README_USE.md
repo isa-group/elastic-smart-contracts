@@ -91,9 +91,9 @@ Two .csv files will be generated for each experiments, one containing the analyt
 
 - **MAXIMUM_TIME**: maximum execution time established by elasticity rules.
 
-# Data usage
+# Performance Analysis
 
-There are 3 principal graphics made to use the results data from the calculations result csv file, but these are just examples as more you can have more uses for the data:
+There are 3 key graphs that could be made to use the results data from the calculations result csv file, but these are just examples as more you can have more uses for the data:
 
 1. Comparison between the calculated flow (**CARS_PER_SECOND_TOTAL**), the real flow (**REAL_CARS_PER_SECOND_TOTAL**) and the real instantaneous flow (**REAL_CARS_PER_SECOND**):
 
