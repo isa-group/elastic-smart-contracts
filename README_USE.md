@@ -108,4 +108,3 @@ There are 3 principal graphics made to use the results data from the calculation
 
 ![dataSource](images/graph3.png)
 
-**In order to correctly use the data you should import it from the CSV file and be sure that every column has the correct format (number)**
