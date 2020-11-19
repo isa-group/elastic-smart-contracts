@@ -58,7 +58,7 @@ if (argv2._.includes('generateCarsConstantDensity')) {
     for(i = 0; i < numberCars; i++){
         csvBody += velocities[i] + "," + (((i/numberCars) * (argv2.time+72)*1000)- 72000).toFixed(0)+"\n";
     }
-    fs.writeFileSync('../elasticityExperiments/'+argv2.fileName+'.csv', csvBody,'utf8');
+    fs.writeFileSync('./'+argv2.fileName+'.csv', csvBody,'utf8');
 }
 
 const argv = yargs
@@ -118,5 +118,5 @@ if (argv._.includes('generateCarsVariableDensity')) {
         }
         
     }
-    fs.writeFileSync('../elasticityExperiments/'+argv.fileName+'.csv', csvBody,'utf8');
+    fs.writeFileSync('./'+argv.fileName+'.csv', csvBody,'utf8');
 }
