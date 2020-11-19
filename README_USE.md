@@ -53,6 +53,7 @@ An example of an execution:
 ```
 node cars.js generateCarsConstantDensity -n 1 -m 2 -t 3600 -f new_file
 ```
+The new file will be generated inside the experiments folder.
 
 Now, to use the new file you must pass the path to it as a new parameter in the execution of the experiments:
 
