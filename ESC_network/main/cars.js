@@ -9,7 +9,7 @@ let velocities = [];
 
 
 const argv2 = yargs
-    .command('generateCars', 'Generate detections during the given time', {
+    .command('generateCarsConstantDensity', 'Generate detections during the given time', {
         minFlow: {
             description: 'minimum cars per second',
             alias: 'n',
@@ -34,7 +34,7 @@ const argv2 = yargs
     )
 .help().alias('help', 'h').argv;
 
-if (argv2._.includes('generateCars')) {
+if (argv2._.includes('generateCarsConstantDensity')) {
 
     let carsPerSecond = (argv2.minFlow+argv2.maxFlow)/2;
 
@@ -56,9 +56,9 @@ if (argv2._.includes('generateCars')) {
     
     }
     for(i = 0; i < numberCars; i++){
-        csvBody += velocities[i] + "," + (((i/numberCars) * numberCars*1000) - 72000).toFixed(0)+"\n";
+        csvBody += velocities[i] + "," + (((i/numberCars) * (argv2.time+72)*1000)- 72000).toFixed(0)+"\n";
     }
-    fs.writeFileSync('./'+argv.fileName+'.csv', csvBody,'utf8');
+    fs.writeFileSync('../elasticityExperiments/'+argv2.fileName+'.csv', csvBody,'utf8');
 }
 
 const argv = yargs
@@ -109,14 +109,14 @@ if (argv._.includes('generateCarsVariableDensity')) {
     }
     for(i = 0; i < numberCars; i++){
         if(i<=parseInt(numberCars/5)){
-            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000+3454718).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000).toFixed(0)+"\n";
         }else if(i>=parseInt(numberCars*4/5)){
-            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 1272000+3454718).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 1272000).toFixed(0)+"\n";
         }else{
             //csvBody += velocities[i] + "," + (((i*5/numberCars) * (argv.time/3)*1000)- 72000).toFixed(0)+"\n";
-            csvBody += velocities[i] + "," + ((((parseInt(numberCars/5)+(i-parseInt(numberCars/5))/3)*5/numberCars) * argv.time/3*1000) - 72000+3454718).toFixed(0)+"\n";
+            csvBody += velocities[i] + "," + ((((parseInt(numberCars/5)+(i-parseInt(numberCars/5))/3)*5/numberCars) * argv.time/3*1000) - 72000).toFixed(0)+"\n";
         }
         
     }
-    fs.writeFileSync('./'+argv.fileName+'.csv', csvBody,'utf8');
+    fs.writeFileSync('../elasticityExperiments/'+argv.fileName+'.csv', csvBody,'utf8');
 }
