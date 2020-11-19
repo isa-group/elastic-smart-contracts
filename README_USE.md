@@ -39,7 +39,7 @@ The simulated sensor data for the experiment can be configured in the file [defa
 
 By default the experiments require a minimum of nine parameters, but a tenth one can be added for the experiments to use a data simulation file other than the default file, which will be used if no other file is within the parameters.
 
-Firstly, you can generate a new file by using the **cars.js** file inside  **elastic-smart-contracts/ESC-network/main**, with a series of configuration parameters:
+Firstly, you can generate a new file by using the **cars.js** file inside  **elastic-smart-contracts/ESC-network/elasticityExperiments**, with a series of configuration parameters:
 
 - The **minimum and maximum cars per second expected** at any given time, the generated file will try to set the cars per second as close as the average between these two parameters represented as **-n and -m respectively**.
 
