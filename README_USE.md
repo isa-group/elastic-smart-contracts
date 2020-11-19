@@ -93,7 +93,29 @@ Two .csv files will be generated for each experiments, one containing the analyt
 
 # Performance Analysis
 
-There are 3 key graphs that could be made to use the results data from the calculations result csv file, but these are just examples as more you can have more uses for the data:
+There are 3 key graphs that could be made to use the results data from the calculations result csv file, but these are just examples as you can have more uses for the data.
+
+Two separate experiments were executed to get the necessary data for the graphics, a first one without elasticity and a second one with elasticity in the temporal window for data to be stored. Each experiment was executed with the following setup, with the only diffence being the elasticity behing it:
+
+- **4** nodes in the street.
+
+- **3600** seconds (one hour) of execution.
+
+- **8** seconds for the frequency of flow calculation.
+
+- **1** second for the frequency of sensor update data.
+
+- **1800** seconds (half an hour) of temporal windows (initially as it may vary with elasticity).
+
+- **5** calculations set as the frequency to execute an elasticity smart contract.
+
+- **1** kilometer for the length of the simulated street.
+
+- **100** ms as the maximum time allowed before aplying elasticity.
+
+- **50** ms as the minimum time allowed before aplying elasticity.
+
+- **No specific data file** used for the simulation, so the **default data file** was used.
 
 1. Comparison between the calculated flow (**CARS_PER_SECOND_TOTAL**), the real flow (**REAL_CARS_PER_SECOND_TOTAL**) and the real instantaneous flow (**REAL_CARS_PER_SECOND**):
 
