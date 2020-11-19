@@ -51,12 +51,17 @@ const argv = yargs
             description: 'number of kilometers of the street',
             alias: 's',
             type: 'number',
+        },
+        pathData: {
+            description: 'path to the csv file data',
+            alias: 'path',
+            type: 'string',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
-async function main(numberSensors, minutes, frequency, timeData, prefix, minimumTime, maximumTime, streetKilometers) {
+async function main(numberSensors, minutes, frequency, timeData, prefix, minimumTime, maximumTime, streetKilometers, pathData) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'base-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -90,17 +95,27 @@ async function main(numberSensors, minutes, frequency, timeData, prefix, minimum
         let inde = [];
         let initialTime = Date.now()
 
-        csv().fromFile('./defaultData.csv').then((res) => {
-            for (let i = 0; i < res.length; i++){
-                velocities.push(res[i].VELOCITY);
-                timeStart.push(res[i].TIME_START);
-                inde.push(i); 
-            }
-        });
+        if(pathData){
+            await csv().fromFile(pathData).then((res) => {
+                for (let i = 0; i < res.length; i++){
+                    velocities.push(res[i].VELOCITY);
+                    timeStart.push(res[i].TIME_START);
+                    inde.push(i);
+                }
+            });
+        }else{
+            await csv().fromFile('./defaultData.csv').then((res) => {
+                for (let i = 0; i < res.length; i++){
+                    velocities.push(res[i].VELOCITY);
+                    timeStart.push(res[i].TIME_START);
+                    inde.push(i);
+                }
+            });
+        }
 
         let csvBody = "";
         let csvBodyCalculated = "";
-        let resultFile = "./results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+        let resultFile = "../results/" + prefix + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultFile, (err, data) => {
             if(err){
                 csvBody = "NUMBER_SENSORS,NUMBER_DETECTIONS,TOTAL_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL,REAL_CARS_PER_SECOND,REAL_CARS_PER_SECOND_TOTAL,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME\n";
@@ -108,7 +123,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix, minimum
                 csvBody = data;
             }
         });
-        let resultCalculatedFile = "./results/" + prefix + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+        let resultCalculatedFile = "../results/" + prefix + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         fs.readFile(resultCalculatedFile, (err, data) => {
             if(err){
                 csvBodyCalculated = "NUMBER_SENSORS,FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n";
@@ -266,7 +281,7 @@ async function main(numberSensors, minutes, frequency, timeData, prefix, minimum
 }
 
 if (argv._.includes('launchListener')) {
-    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix, argv.minCalculationTime, argv.maxCalculationTime, argv.streetKilometers);
+    main(argv.numberSensors, argv.minutes, argv.frequency, argv.timeData, argv.prefix, argv.minCalculationTime, argv.maxCalculationTime, argv.streetKilometers, argv.pathData);
 }
 
 async function analysis(timeData, fromDate, numberSensors, frequency) {

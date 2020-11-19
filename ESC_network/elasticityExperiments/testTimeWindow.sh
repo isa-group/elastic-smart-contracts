@@ -10,12 +10,14 @@ docker network connect net_test $(docker ps -a -q --filter ancestor=prom/prometh
 cd main
 sleep 1
 ./register.sh 4
-node analysisManager.js launchListener -n $1 -m $2 -f $3 -t $5 -p testNoElastic --maxc $8 --minc $9 -s $7 &
+nodes=$1
+shift 1
+node analysisManager.js launchListener -n $nodes -m $1 -f $2 -t $4 -p testTimeWindow --maxc $7 --minc $8 -s $6 --path $9 &
 WR=$!
 sleep 1
 for i in $(seq 1 1 4)
 do
-    node harvestingManager.js launchDetections -n $1 -m $2 -s $7 -j $i -t $5 -d $4 --maxc $8 --minc $9 --fcc $6 -e 1 &
+    node harvestingManager.js launchDetections -n $nodes -m $1 -s $6 -j $i -t $4 -d $3 --maxc $7 --minc $8 --fcc $5 -e 2 --path $9 &
 done
 
 wait $WR

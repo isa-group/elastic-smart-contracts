@@ -62,13 +62,18 @@ const argv = yargs
             description: 'experiment to execute',
             alias: 'e',
             type: 'number',
+        },
+        pathData: {
+            description: 'path to the csv file data',
+            alias: 'path',
+            type: 'string',
         }
       }
     )
 .help().alias('help', 'h').argv;
 
 
-async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime, minCalculationTime, frequencyControlCalculate, experimentNumber) {
+async function main(numberSensor, numberSensors, streetKilometers, minutes, dataFrequency, timeData, maxCalculationTime, minCalculationTime, frequencyControlCalculate, experimentNumber, pathData) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'base-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -100,13 +105,25 @@ async function main(numberSensor, numberSensors, streetKilometers, minutes, data
         let velocities = [];
         let timeStart = [];
         let inde = []
-        await csv().fromFile('./defaultData.csv').then((res) => {
-            for (let i = 0; i < res.length; i++){
-                velocities.push(res[i].VELOCITY);
-                timeStart.push(res[i].TIME_START);
-                inde.push(i);
-            }
-        });
+
+        if(pathData){
+            await csv().fromFile(pathData).then((res) => {
+                for (let i = 0; i < res.length; i++){
+                    velocities.push(res[i].VELOCITY);
+                    timeStart.push(res[i].TIME_START);
+                    inde.push(i);
+                }
+            });
+        }else{
+            await csv().fromFile('./defaultData.csv').then((res) => {
+                for (let i = 0; i < res.length; i++){
+                    velocities.push(res[i].VELOCITY);
+                    timeStart.push(res[i].TIME_START);
+                    inde.push(i);
+                }
+            });
+        }
+
 
         let initialTime = Date.now();
 
@@ -267,7 +284,7 @@ if (argv._.includes('launchDetections')) {
 
 
     main(argv.numberSensor, argv.numberSensors, argv.streetKilometers, argv.minutes, argv.dataFrequency, argv.timeData,
-         argv.maxCalculationTime, argv.minCalculationTime, argv.frequencyControlCalculate, argv.experimentNumber);
+         argv.maxCalculationTime, argv.minCalculationTime, argv.frequencyControlCalculate, argv.experimentNumber, argv.pathData);
 
 }
 

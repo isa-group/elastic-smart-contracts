@@ -24,6 +24,11 @@ const argv2 = yargs
             description: 'seconds of execution',
             alias: 't',
             type: 'number',
+        },
+        fileName: {
+            description: 'name of the file to generate',
+            alias: 'f',
+            type: 'string',
         }
       }
     )
@@ -53,7 +58,7 @@ if (argv2._.includes('generateCars')) {
     for(i = 0; i < numberCars; i++){
         csvBody += velocities[i] + "," + (((i/numberCars) * numberCars*1000) - 72000).toFixed(0)+"\n";
     }
-    fs.writeFileSync('./cars6.csv', csvBody,'utf8');
+    fs.writeFileSync('./'+argv.fileName+'.csv', csvBody,'utf8');
 }
 
 const argv = yargs
@@ -72,6 +77,11 @@ const argv = yargs
             description: 'seconds of execution',
             alias: 't',
             type: 'number',
+        },
+        fileName: {
+            description: 'name of the file to generate',
+            alias: 'f',
+            type: 'string',
         }
       }
     )
@@ -108,5 +118,5 @@ if (argv._.includes('generateCarsVariableDensity')) {
         }
         
     }
-    fs.writeFileSync('./cars6.csv', csvBody,'utf8');
+    fs.writeFileSync('./'+argv.fileName+'.csv', csvBody,'utf8');
 }

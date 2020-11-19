@@ -6,11 +6,12 @@ if [ "$#" -ne 9 ]; then
     echo "Example: $0 4 3600 8 1 1800 5 1 100 50"
     exit
 fi
-
+nodes=$1
+shift 1
 echo "########### LAUNCHING THE EXPERIMENTS ###########"
-./testFrequency.sh $1 $2 $3 $4 $5 $6 $7 $8 $9
+./testFrequency.sh $nodes $1 $2 $3 $4 $5 $6 $7 $8 $9
 sleep 10
-./testNoElasticity.sh $1 $2 $3 $4 $5 $6 $7 $8 $9
+./testNoElasticity.sh $nodes $1 $2 $3 $4 $5 $6 $7 $8 $9
 sleep 10
-./testTimeWindow.sh $1 $2 $3 $4 $5 $6 $7 $8 $9
+./testTimeWindow.sh $nodes $1 $2 $3 $4 $5 $6 $7 $8 $9
  echo "############ SCRIPT FINISHED ############"
