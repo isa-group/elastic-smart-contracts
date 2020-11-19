@@ -2,7 +2,7 @@
 
 1. Please read the README.md file first and install all necessary components first
 
-2. go to **elastic-smart-contracts/ESC-network/ExperimentSetElasticity** and run ./launchExperimentsElastic.sh with the necessary parameters, if you run it without any, an error message will appear explaining each parameter:
+2. go to **elastic-smart-contracts/ESC-network/elasticityExperiments** and run ./launchExperiments.sh with the necessary parameters, if you run it without any, an error message will appear explaining each parameter:
 
 - **Number of sensors**: number of sensors to simulate in the experiments.
 
@@ -33,7 +33,33 @@ The parameters of this example are the same used in the graphs shown at the end 
 For each one of those experiments 2 CSV files will be generated in the "results" folder with a timestamp of the execution date and a prefix for each experiment: "testNoElastic", "testFrequency" and "testTimeWindow". the three experiment test the system without any elasticity, with the frequency of update of sensors as elasticity parameter and the time window for the data to be stored as elasticity parameter, respectively.
 Wait for the network to start up and run the experiments! Once it is finished it will shut down itself. The estimated duration of these experiments is between three and three and a half hours. The results will be written in a series of .csv files inside ``elastic-smart-contracts/ESC-network/main/results``.
 
-The simlated sensor data for the experiment can be configured in the file [defaultData.csv](https://github.com/isa-group/elastic-smart-contracts/blob/master/ESC_network/main/defaultData.csv); in the current scenario, each row represent the speed and relative arrival time for each car.  
+The simulated sensor data for the experiment can be configured in the file [defaultData.csv](https://github.com/isa-group/elastic-smart-contracts/blob/master/ESC_network/main/defaultData.csv); in the current scenario, each row represent the speed and relative arrival time for each car.  
+
+# Generating simulation files
+
+By default the experiments require a minimum of nine parameters, but a tenth one can be added for the experiments to use a data simulation file other than the default file, which will be used if no other file is within the parameters.
+
+Firstly, you can generate a new file by using the **cars.js** file inside  **elastic-smart-contracts/ESC-network/main**, with a series of configuration parameters:
+
+- The **minimum and maximum cars per second expected** at any given time, the generated file will try to set the cars per second as close as the average between these two parameters represented as **-n and -m respectively**.
+
+- The **expected execution time** in seconds of the experiment that will use this file, more time equal more data necessary, represented as **-t**.
+
+- The **name of the new file** that will be generated in the same folder as cars.js represented as **-f**.
+
+Secondly, there are two different ways of generating a file, with a **constant** flow or **variable** flow, to set which one we want we need to pass it as a parameter, being **generateCarsConstantDensity** the parameter for the constant flow and **generateCarsVariableDensity**. The variable one will have the first third of the experiment with the average flow between the minimum and maximum given, the second third with **triple** that flow and the final third back to the previous flow.
+
+An example of an execution:
+```
+node cars.js generateCarsConstantDensity -n 1 -m 2 -t 3600 -f new_file
+```
+
+Now, to use the new file you must pass the path to it as a new parameter in the execution of the experiments:
+
+```
+./launchExperimentsElastic.sh 4 3600 8 1 1800 5 1 100 50 PATH_TO_NEW_FILE
+```
+
 
 # Results interpretation
 
