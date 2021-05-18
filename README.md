@@ -44,7 +44,7 @@ This guide has been developed in Ubuntu 18.04. It is recommended to update the s
   
 7. Download the Binaries and Docker images with the following command line: 
 ```
-curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.3.1 1.5.0
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.3.1 1.4.9
 ```
 **This will also download the fabric samples as there is no installer available for just the Binaries and Images, for more information please check https://hyperledger-fabric.readthedocs.io/en/release-2.3/install.html**
 
