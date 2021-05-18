@@ -11,7 +11,7 @@ function printHelp() {
   USAGE="$1"
   if [ "$USAGE" == "up" ]; then
     println "Usage: "
-    println "  network.sh \033[0;32mup\033[0m [Flags]"
+    println "  init.sh \033[0;32mup\033[0m [Flags]"
     println
     println "    Flags:"
     println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
@@ -28,10 +28,10 @@ function printHelp() {
     println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -verbose"
     println
     println " Examples:"
-    println "   network.sh up createChannel -ca -c governifychannel -s couchdb "
+    println "   init.sh up createChannel -ca -c governifychannel -s couchdb "
   elif [ "$USAGE" == "createChannel" ]; then
     println "Usage: "
-    println "  network.sh \033[0;32mcreateChannel\033[0m [Flags]"
+    println "  init.sh \033[0;32mcreateChannel\033[0m [Flags]"
     println
     println "    Flags:"
     println "    -c <channel name> - Name of channel to create (defaults to \"governifychannel\")"
@@ -45,10 +45,10 @@ function printHelp() {
     println "   \033[0;32mcreateChannel\033[0m -c -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh createChannel -c channelName"
+    println "   init.sh createChannel -c channelName"
   elif [ "$USAGE" == "deployCC" ]; then
     println "Usage: "
-    println "  network.sh \033[0;32mdeployCC\033[0m [Flags]"
+    println "  init.sh \033[0;32mdeployCC\033[0m [Flags]"
     println
     println "    Flags:"
     println "    -c <channel name> - Name of channel to deploy chaincode to"
@@ -67,11 +67,11 @@ function printHelp() {
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
-    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+    println "   init.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
+    println "   init.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
   else
     println "Usage: "
-    println "  network.sh <Mode> [Flags]"
+    println "  init.sh <Mode> [Flags]"
     println "    Modes:"
     println "      \033[0;32mup\033[0m - Bring up Fabric orderer and peer nodes. No channel is created"
     println "      \033[0;32mup createChannel\033[0m - Bring up fabric network with one channel"
@@ -80,7 +80,7 @@ function printHelp() {
     println "      \033[0;32mdown\033[0m - Bring down the network"
     println
     println "    Flags:"
-    println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
+    println "    Used with \033[0;32minit.sh up\033[0m, \033[0;32minit.sh createChannel\033[0m:"
     println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
     println "    -c <channel name> - Name of channel to create (defaults to \"governifychannel\")"
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
@@ -88,7 +88,7 @@ function printHelp() {
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
     println "    -verbose - Verbose mode"
     println
-    println "    Used with \033[0;32mnetwork.sh deployCC\033[0m"
+    println "    Used with \033[0;32minit.sh deployCC\033[0m"
     println "    -c <channel name> - Name of channel to deploy chaincode to"
     println "    -ccn <name> - Chaincode name."
     println "    -ccl <language> - Programming language of the chaincode to deploy: go, java, javascript, typescript"
@@ -108,10 +108,10 @@ function printHelp() {
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh up createChannel -ca -c governifychannel -s couchdb"
-    println "   network.sh createChannel -c channelName"
-    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
-    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+    println "   init.sh up createChannel -ca -c governifychannel -s couchdb"
+    println "   init.sh createChannel -c channelName"
+    println "   init.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
+    println "   init.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
   fi
 }
 

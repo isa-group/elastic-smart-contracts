@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-# Copyright IBM Corp All Rights Reserved
-#
-# SPDX-License-Identifier: Apache-2.0
-#
 
 function createOrg3 {
 	infoln "Enrolling the CA admin"

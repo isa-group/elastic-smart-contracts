@@ -16,7 +16,11 @@ var contract = "";
 
 var config = {}
 
-
+/**
+ * Configurates every variable necessary to run an esc.
+ * @function
+ * @param {object} configuration - The initial configuration object with the necessary variables.
+ */
 async function configurate(configuration){
     config = JSON.parse(JSON.stringify(configuration));
     config.analysisCommited = true;
@@ -27,6 +31,11 @@ async function configurate(configuration){
     config.execTimes = [];
 }
 
+
+/**
+ * Connects to the blockchain network using the configuration variables
+ * @function
+ */
 async function connect() {
     try {
         // load the network configuration
@@ -62,7 +71,10 @@ async function connect() {
 }
 
 
-
+/**
+ * Sets the event listener responsible for evaluating the elastic parameters periodically and adjusting the parameters accordingly.
+ * @function
+ */
 async function harvesterListener() {
 
     let warmUp = true;
@@ -142,7 +154,13 @@ async function harvesterListener() {
 }
 
 
-
+/**
+ * This functions save the new data from the harvester until enough data for a batch to introduce is ready and the storage data is not currently in use
+ * for analysis, then it submits the new data.
+ * @function
+ * @param {object} params - An object with any aditional param besides the default ones for the smart contract to use.
+ * @param {object} newData - The new data to introduce in the blockchain or temporarely hold to introduce it later.
+ */
 async function harvesterHook(params, newData) {
     try {
 
@@ -177,7 +195,12 @@ async function harvesterHook(params, newData) {
     }
 }
 
-
+/**
+ * This functions sets up a listener which recolect the analysis data and dump it into a file at the end of its execution.
+ * It also calls the analysis function each time a new batch of data has been introduced in the blockchain.
+ * @function
+ * @param {object} params - An object with any aditional param besides the default ones for the smart contract to use.
+ */
 async function analyser(params) {
     try {
 
@@ -210,8 +233,6 @@ async function analyser(params) {
     
             if (event.type === 'analysis'){
     
-                let totalInstant = 0;
-                let totalTimeData = 0;
                 config.dataTimeLimit = event.timeData;
     
                 for(let j = 0; j< event.analysisList.length; j++){
@@ -227,8 +248,6 @@ async function analyser(params) {
                     }
                     
                     csvBody += `\n`
-                    //totalInstant = 0;
-                    //totalTimeData = 0;
                 }
     
                 console.log(`Analysis event detected, waiting ${config.analysisFrequency} seconds to launch transaction`);
@@ -310,7 +329,11 @@ async function analyser(params) {
 }
 
 
-
+/**
+ * This functions calls the analysis smart contract with the params given
+ * @function
+ * @param {object} params - An object with any aditional param besides the default ones for the smart contract to use.
+ */
 async function analysis(params) {
     try {
         
@@ -330,18 +353,27 @@ async function analysis(params) {
     }
 }
 
-async function changeFrequency() {
+/**
+ * This functions returns an object which indicates if the frequency needs to be changed and the new one in that case.
+ * @function
+ */
+async function getNewFrequency() {
     return config.changeFrequency;
 }
 
+/**
+ * Once the frequency has changed this function sets the configuration parameter to not change the frequency.
+  * @function
+ */
 async function frequencyChanged() {
     config.changeFrequency = {change: false, newTime: 0};
 }
+
 module.exports.harvesterHook = harvesterHook;
 module.exports.harvesterListener = harvesterListener;
 module.exports.connect = connect;
 module.exports.analyser = analyser;
 module.exports.configurate = configurate;
-module.exports.changeFrequency = changeFrequency;
+module.exports.getNewFrequency = getNewFrequency;
 module.exports.frequencyChanged = frequencyChanged;
 

@@ -53,13 +53,19 @@ const argv = yargs
 
 
 
-
+/**
+ * Call the harvester in esc_core/index regularly with the frequency given and in case of having an elastic frequency it monitors any changes in it and applies it. 
+ * 
+ * In this function it is defined from where the data is taken to introduce it in the blockchain.
+ * @function
+ * @param {number} frequency - The initial frequency in seconds to harvest data.
+ */
 async function intervalHarvester(frequency) {
   if(config.experimentNumber == 3){
     ESC.frequencyChanged();
     let interval = await setInterval(() => {
   
-      ESC.changeFrequency().then((res) =>{
+      ESC.getNewFrequency().then((res) =>{
   
         if(res.change){
   

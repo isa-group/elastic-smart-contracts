@@ -1,9 +1,6 @@
 #!/bin/bash
 #
-# Copyright IBM Corp. All Rights Reserved.
-#
-# SPDX-License-Identifier: Apache-2.0
-#
+
 
 # This script is designed to be run in the cli container as the
 # first step of the EYFN tutorial.  It creates and submits a

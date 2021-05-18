@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-# Copyright IBM Corp All Rights Reserved
-#
-# SPDX-License-Identifier: Apache-2.0
-#
 
 # This script extends the Hyperledger Fabric test network by adding
 # adding a third organization to the network
@@ -132,7 +127,7 @@ function Org3Up () {
 function addOrg3 () {
   # If the test network is not up, abort
   if [ ! -d ../organizations/ordererOrganizations ]; then
-    fatalln "ERROR: Please, run ./network.sh up createChannel first."
+    fatalln "ERROR: Please, run ./init.sh up createChannel first."
   fi
 
   # generate artifacts if they don't exist
@@ -162,7 +157,7 @@ function addOrg3 () {
 # Tear down running network
 function networkDown () {
     cd ..
-    ./network.sh down
+    ./init.sh down
 }
 
 # Using crpto vs CA. default is cryptogen

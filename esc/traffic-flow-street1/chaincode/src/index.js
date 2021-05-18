@@ -1,20 +1,24 @@
-/*
- * Copyright IBM Corp. All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
 
-class Governify2 extends Contract {
+class Governify extends Contract {
 
+    /**
+    * Initialize the chaincode
+    * @async
+    */
     async initLedger(ctx) {
        
     }
 
-    async querySensor2(ctx, numberSensor) {
+    /**
+    * Gets a sensor from the blockchain
+    * @async
+    * @param {number} numberSensor - The id of the sensor to get.
+    */
+    async querySensor(ctx, numberSensor) {
     
         let queryString = `{
             "selector": {
@@ -23,11 +27,15 @@ class Governify2 extends Contract {
                 }
             }
         }`;
-        return this.queryWithQueryString2(ctx, queryString);
+        return this.queryWithQueryString(ctx, queryString);
     
     }
 
-    async createSensor2(ctx) {
+    /**
+    * Creates the data storage for this chaincode, which is a sensor.
+    * @async
+    */
+    async createSensor(ctx) {
         
     
         const sensor = {
@@ -38,7 +46,11 @@ class Governify2 extends Contract {
         await ctx.stub.putState('SENSOR1', Buffer.from(JSON.stringify(sensor)));
     }
 
-    async queryStreetFlows2(ctx, streetId) {
+    /**
+    * Gets the calculation storage for this chaincode.
+    * @async
+    */
+    async queryStreetFlows(ctx, streetId) {
     
         let queryString = `{
             "selector": {
@@ -47,11 +59,15 @@ class Governify2 extends Contract {
                 }
             }
         }`;
-        return this.queryWithQueryString2(ctx, queryString);
+        return this.queryWithQueryString(ctx, queryString);
     
     }
 
-    async createStreetFlows2(ctx) {
+    /**
+    * Creates the calculation storage for this chaincode.
+    * @async
+    */
+    async createStreetFlows(ctx) {
         
     
         const streetflows = {
@@ -62,9 +78,15 @@ class Governify2 extends Contract {
         await ctx.stub.putState('STREETFLOWS1', Buffer.from(JSON.stringify(streetflows)));
     }
 
-    async updateData2(ctx, params) {
+    /**
+    * Submit the new data given to the blockchain.
+    * @async
+    * @param {object} params - An object with all the parameters necessary which are the id of the data storage, the array of data to introduce, 
+    * the current time window for the data and the frequency to harvest data.
+    */
+    async updateData(ctx, params) {
         let parameters = JSON.parse(params.toString())
-        let s = await this.querySensor2(ctx, parseInt(parameters.numberSensor));
+        let s = await this.querySensor(ctx, parseInt(parameters.numberSensor));
         let sensor = JSON.parse(s.toString())[0];
         let det = JSON.parse(parameters.data);
         let time = Date.now();
@@ -87,7 +109,13 @@ class Governify2 extends Contract {
     }
 
 
-    async analysis2(ctx, params) {
+    /**
+    * Analyses data and submits the result to the blockchain.
+    * @async
+    * @param {object} params - An object with all the parameters necessary which are the calculation storage, the dates from which collect data
+    * to analyse it, the number of sensors in the street, the current time window for the data and the current frequency.
+    */
+    async analysis(ctx, params) {
         let totalBeginHR = process.hrtime();
         let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
@@ -108,7 +136,7 @@ class Governify2 extends Contract {
         if(frmDates.length > 0){
 
             for(let j=1; j<=numSens; j++){
-                let sensor = await this.querySensor2(ctx, j);
+                let sensor = await this.querySensor(ctx, j);
                 sensors.push(JSON.parse(sensor.toString())[0]);
             }
     
@@ -185,8 +213,15 @@ class Governify2 extends Contract {
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
     }
 
-
-    async evaluateHistory2(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
+    /**
+    * Evaluates the current calculation time and reajust the time window for data if necessary.
+    * @async
+    * @param {number} timeData - Current time window.
+    * @param {number} calculateTime - Current calculation time.
+    * @param {number} maxCalculateTime - Maximum calculation time allowed.
+    * @param {number} minCalculateTime - Minimum calculation time allowed.
+    */
+    async evaluateHistory(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
             return JSON.parse(parseInt(timeData)*0.75);
@@ -198,7 +233,15 @@ class Governify2 extends Contract {
     
     }
 
-    async evaluateFrequency2(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
+    /**
+    * Evaluates the current calculation time and reajust the frequency for harvesting data if necessary.
+    * @async
+    * @param {number} frequency - Current frequency.
+    * @param {number} calculateTime - Current calculation time.
+    * @param {number} maxCalculateTime - Maximum calculation time allowed.
+    * @param {number} minCalculateTime - Minimum calculation time allowed.
+    */
+    async evaluateFrequency(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)*0.9){
             return JSON.parse(parseFloat(frequency)*1.25);
@@ -209,8 +252,13 @@ class Governify2 extends Contract {
         }
     
     }
-        
-    async queryWithQueryString2(ctx, queryString) {
+    
+    /**
+    * Auxiliary function to query the blockchain.
+    * @async
+    * @param {string} queryString - Query to process.
+    */
+    async queryWithQueryString(ctx, queryString) {
     
         console.log('query String');
         console.log(JSON.stringify(queryString));
@@ -251,4 +299,4 @@ class Governify2 extends Contract {
 
 }
 
-module.exports = Governify2;
+module.exports = Governify;

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "fabric-ca-client": "^2.2.5",
+    "fabric-network": "^2.2.5",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "process": "^0.11.10"
+  }
+}

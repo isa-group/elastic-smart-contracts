@@ -1,20 +1,14 @@
-/*
- * Copyright IBM Corp. All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
 
-class Governify extends Contract {
+class Governify2 extends Contract {
 
     async initLedger(ctx) {
        
     }
 
-    async querySensor(ctx, numberSensor) {
+    async querySensor2(ctx, numberSensor) {
     
         let queryString = `{
             "selector": {
@@ -23,11 +17,11 @@ class Governify extends Contract {
                 }
             }
         }`;
-        return this.queryWithQueryString(ctx, queryString);
+        return this.queryWithQueryString2(ctx, queryString);
     
     }
 
-    async createSensor(ctx) {
+    async createSensor2(ctx) {
         
     
         const sensor = {
@@ -38,7 +32,7 @@ class Governify extends Contract {
         await ctx.stub.putState('SENSOR1', Buffer.from(JSON.stringify(sensor)));
     }
 
-    async queryStreetFlows(ctx, streetId) {
+    async queryStreetFlows2(ctx, streetId) {
     
         let queryString = `{
             "selector": {
@@ -47,11 +41,11 @@ class Governify extends Contract {
                 }
             }
         }`;
-        return this.queryWithQueryString(ctx, queryString);
+        return this.queryWithQueryString2(ctx, queryString);
     
     }
 
-    async createStreetFlows(ctx) {
+    async createStreetFlows2(ctx) {
         
     
         const streetflows = {
@@ -62,9 +56,9 @@ class Governify extends Contract {
         await ctx.stub.putState('STREETFLOWS1', Buffer.from(JSON.stringify(streetflows)));
     }
 
-    async updateData(ctx, params) {
+    async updateData2(ctx, params) {
         let parameters = JSON.parse(params.toString())
-        let s = await this.querySensor(ctx, parseInt(parameters.numberSensor));
+        let s = await this.querySensor2(ctx, parseInt(parameters.numberSensor));
         let sensor = JSON.parse(s.toString())[0];
         let det = JSON.parse(parameters.data);
         let time = Date.now();
@@ -87,7 +81,7 @@ class Governify extends Contract {
     }
 
 
-    async analysis(ctx, params) {
+    async analysis2(ctx, params) {
         let totalBeginHR = process.hrtime();
         let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
@@ -108,7 +102,7 @@ class Governify extends Contract {
         if(frmDates.length > 0){
 
             for(let j=1; j<=numSens; j++){
-                let sensor = await this.querySensor(ctx, j);
+                let sensor = await this.querySensor2(ctx, j);
                 sensors.push(JSON.parse(sensor.toString())[0]);
             }
     
@@ -186,7 +180,7 @@ class Governify extends Contract {
     }
 
 
-    async evaluateHistory(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
+    async evaluateHistory2(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
             return JSON.parse(parseInt(timeData)*0.75);
@@ -198,7 +192,7 @@ class Governify extends Contract {
     
     }
 
-    async evaluateFrequency(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
+    async evaluateFrequency2(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)*0.9){
             return JSON.parse(parseFloat(frequency)*1.25);
@@ -210,7 +204,7 @@ class Governify extends Contract {
     
     }
         
-    async queryWithQueryString(ctx, queryString) {
+    async queryWithQueryString2(ctx, queryString) {
     
         console.log('query String');
         console.log(JSON.stringify(queryString));
@@ -251,4 +245,4 @@ class Governify extends Contract {
 
 }
 
-module.exports = Governify;
+module.exports = Governify2;
