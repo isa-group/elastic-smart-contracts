@@ -27,7 +27,7 @@ let config = {
   updateDataContract: "updateData2",
   evaluateHistoryContract: "evaluateHistory2",
   evaluateFrequencyContract: "evaluateFrequency2",
-  queryAnalysisHolderContract: "queryStreetFlows2",
+  queryAnalysisHolderContract: "queryStreetFlows",
   analysisHolderId: 1,
   analysisContract: "analysis2",
   dataStorageContract: "createSensor2",

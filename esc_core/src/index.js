@@ -15,12 +15,12 @@ var chaincodes = [];
 var dataStorageContracts = [];
 var calculationStorageContracts = [];
 
-
+let analysis = false;
 let pro = new Promise((res,rej) => {
     fs.readdir(dir,(err,files) => {
-   
+        analysis= files.includes('analysis')
         paths= paths.concat(files.filter((path)=> {
-           return path != 'esc';
+           return (path != 'esc' && path != 'analysis');
         }))
         res(true)   
     })
@@ -36,7 +36,7 @@ pro.then(()=>{
         calculationStorageContracts.push(a.config.calculationStorageContract);
 
     }
-    main(chaincodes,dataStorageContracts,calculationStorageContracts);
+    main(chaincodes,dataStorageContracts,calculationStorageContracts,analysis);
 });
 
 
@@ -48,7 +48,7 @@ pro.then(()=>{
  * @param {array} dataStorageContracts - The names of the smart contracts that create each data storage for each chaincode.
  * @param {array} calculationStorageContracts - The names of the smart contracts that create each calculation storage for each chaincode.
  */
-async function main(chaincodes,dataStorageContracts,calculationStorageContracts) {
+async function main(chaincodes,dataStorageContracts,calculationStorageContracts,analysis) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..',  '..', 'network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -76,6 +76,11 @@ async function main(chaincodes,dataStorageContracts,calculationStorageContracts)
         const network = await gateway.getNetwork('governifychannel');
 
         // Get the contract from the network.
+        if(analysis){
+            let contract = network.getContract('analysis');
+            await contract.submitTransaction('createStorage');
+            console.log("Averages storage created")
+        }
         
 
         for(let i =0; i<chaincodes.length; i++){

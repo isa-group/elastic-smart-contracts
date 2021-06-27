@@ -12,5 +12,5 @@ organizations/peerOrganizations/*
 system-genesis-block/*
 *.tar.gz
 log.txt
-/package-lock.json
-/node_modules
+connection/package-lock.json
+connection/node_modules

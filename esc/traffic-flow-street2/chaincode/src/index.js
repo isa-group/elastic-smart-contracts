@@ -32,7 +32,7 @@ class Governify2 extends Contract {
         await ctx.stub.putState('SENSOR1', Buffer.from(JSON.stringify(sensor)));
     }
 
-    async queryStreetFlows2(ctx, streetId) {
+    async queryStreetFlows(ctx, streetId) {
     
         let queryString = `{
             "selector": {
@@ -50,7 +50,7 @@ class Governify2 extends Contract {
     
         const streetflows = {
             streetId: 1,
-            flows: [],
+            data: [],
         };
     
         await ctx.stub.putState('STREETFLOWS1', Buffer.from(JSON.stringify(streetflows)));
@@ -141,7 +141,7 @@ class Governify2 extends Contract {
                     totalDetections,
                 };
                 if(totalDetections > 0){
-                    strFlow.flows.push(carFlow);
+                    strFlow.data.push(carFlow);
                 }
                 bySection = [];
                 totalDetections = 0;
@@ -149,7 +149,7 @@ class Governify2 extends Contract {
                 totalDetectionsStored = 0;
             }
             
-            if(strFlow.flows.length > 0){
+            if(strFlow.data.length > 0){
                 await ctx.stub.putState('STREETFLOWS' + strFlow.streetId, Buffer.from(JSON.stringify(strFlow)));
             }
 

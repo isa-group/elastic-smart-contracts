@@ -9,7 +9,7 @@ starttime=$(date +%s)
 
 
 # clean out any old identites in the wallets
-rm -rf esc_core/esc/wallet/*
+rm -rf esc_core/wallet/*
 
 # launch network; create channel and join peer to channel
 pushd ./network

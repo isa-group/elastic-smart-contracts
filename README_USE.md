@@ -32,10 +32,6 @@
   - **dataStorageContract**: name of the contract responsible for creating the data storage.
   - **calculationStorageContract**: name of the contract responsible for creating the calculation storage.
 
-```
-./launchExperimentsElastic.sh 4 3600 8 1 1800 5 1 100 50
-```
-
 Once all the parameters have been configured for each of the chaincodes to use, execute this scripts in order located in the root of the repositoory:
 ```
 ./init.sh
@@ -44,7 +40,7 @@ Once all the parameters have been configured for each of the chaincodes to use, 
 Then execute the following script with the path of every chaincode you want to execute in paralel, for instance:
 
 ```
-./start.sh ./esc/traffic-flow-street1/index.js ./esc/traffic-flow-street2/index.js
+./start.sh ./esc/traffic-flow-street1/index.js ./esc/traffic-flow-street2/index.js ./esc/analysis/index.js
 ```
 
 Whenever you want to bring the network down once the experiments have finished, execute:
