@@ -15,7 +15,7 @@ function printHelp() {
     println
     println "    Flags:"
     println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
-    println "    -c <channel name> - Name of channel to create (defaults to \"governifychannel\")"
+    println "    -c <channel name> - Name of channel to create (defaults to \"escchannel\")"
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
     println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
@@ -28,13 +28,13 @@ function printHelp() {
     println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -verbose"
     println
     println " Examples:"
-    println "   init.sh up createChannel -ca -c governifychannel -s couchdb "
+    println "   init.sh up createChannel -ca -c escchannel -s couchdb "
   elif [ "$USAGE" == "createChannel" ]; then
     println "Usage: "
     println "  init.sh \033[0;32mcreateChannel\033[0m [Flags]"
     println
     println "    Flags:"
-    println "    -c <channel name> - Name of channel to create (defaults to \"governifychannel\")"
+    println "    -c <channel name> - Name of channel to create (defaults to \"escchannel\")"
     println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
     println "    -verbose - Verbose mode"
@@ -82,7 +82,7 @@ function printHelp() {
     println "    Flags:"
     println "    Used with \033[0;32minit.sh up\033[0m, \033[0;32minit.sh createChannel\033[0m:"
     println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
-    println "    -c <channel name> - Name of channel to create (defaults to \"governifychannel\")"
+    println "    -c <channel name> - Name of channel to create (defaults to \"escchannel\")"
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
     println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
@@ -108,7 +108,7 @@ function printHelp() {
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   init.sh up createChannel -ca -c governifychannel -s couchdb"
+    println "   init.sh up createChannel -ca -c escchannel -s couchdb"
     println "   init.sh createChannel -c channelName"
     println "   init.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
     println "   init.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"

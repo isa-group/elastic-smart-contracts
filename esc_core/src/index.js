@@ -73,7 +73,7 @@ async function main(chaincodes,dataStorageContracts,calculationStorageContracts,
         await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('governifychannel');
+        const network = await gateway.getNetwork('escchannel');
 
         // Get the contract from the network.
         if(analysis){

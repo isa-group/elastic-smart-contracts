@@ -3,7 +3,7 @@
 
 const { Contract } = require('fabric-contract-api');
 
-class Governify extends Contract {
+class traffic_flow_street1 extends Contract {
 
     /**
     * Initialize the chaincode
@@ -299,4 +299,4 @@ class Governify extends Contract {
 
 }
 
-module.exports = Governify;
+module.exports = traffic_flow_street1;

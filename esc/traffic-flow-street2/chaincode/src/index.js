@@ -2,7 +2,7 @@
 
 const { Contract } = require('fabric-contract-api');
 
-class Governify2 extends Contract {
+class traffic_flow_street2 extends Contract {
 
     async initLedger(ctx) {
        
@@ -245,4 +245,4 @@ class Governify2 extends Contract {
 
 }
 
-module.exports = Governify2;
+module.exports = traffic_flow_street2;

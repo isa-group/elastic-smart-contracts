@@ -300,8 +300,8 @@ CRYPTO="cryptogen"
 MAX_RETRY=5
 # default for delay between commands
 CLI_DELAY=3
-# channel name defaults to "governifychannel"
-CHANNEL_NAME="governifychannel"
+# channel name defaults to "escchannel"
+CHANNEL_NAME="escchannel"
 # chaincode name defaults to "NA"
 CC_NAME="NA"
 # chaincode path defaults to "NA"

@@ -8,8 +8,8 @@ let config = {
   conexionPath: "/home/pablo/Escritorio/Gover/Elastic/network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
   resultsPath: "/home/pablo/Escritorio/Gover/Elastic/esc/traffic-flow-street2/results",
   identityName: "admin",
-  channelName: "governifychannel",
-  chaincodeName: "governify2",
+  channelName: "escchannel",
+  chaincodeName: "traffic-flow-street2",
   csvResultsCalculationsHeader: "NUMBER_DETECTIONS,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 

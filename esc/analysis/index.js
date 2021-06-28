@@ -10,9 +10,9 @@ const { Gateway, Wallets } = require('fabric-network');
 let config = {
   conexionPath: "/home/pablo/Escritorio/Gover/Elastic/network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
   identityName: "admin",
-  channelName: "governifychannel",
-  chaincodeNames: ["governify","governify2"],
-  
+  channelName: "escchannel",
+  chaincodeNames: ["traffic-flow-street1","traffic-flow-street2"],
+  queryStorages: ["queryStreetFlows","queryStreetFlows"],
 
 
   executionTime: 60,
@@ -65,7 +65,7 @@ async function averagesAnalysis() {
         event = JSON.parse(event); 
 
       if (event.type === 'analysis'){
-          contract.evaluateTransaction('queryStreetFlows', 1).then((res)=> {
+          contract.evaluateTransaction(config.queryStorages[i], 1).then((res)=> {
             count++;
             data = data.concat(JSON.parse(res.toString())[0].Record.data);
             if(count >= config.chaincodeNames.length){

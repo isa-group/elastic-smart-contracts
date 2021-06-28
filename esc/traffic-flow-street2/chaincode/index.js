@@ -1,6 +1,6 @@
 'use strict';
 
-const Governify2 = require('./src');
+const traffic_flow_street2 = require('./src');
 
-module.exports.Governify2 = Governify2;
-module.exports.contracts = [ Governify2 ];
+module.exports.traffic_flow_street2 = traffic_flow_street2;
+module.exports.contracts = [ traffic_flow_street2 ];

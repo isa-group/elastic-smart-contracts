@@ -10,7 +10,7 @@ cd addOrg3
 ./addOrg3.sh up
 ```
 
-If you used `init.sh` to create a channel other than the default `governifychannel`, you need pass that name to the `addorg3.sh` script.
+If you used `init.sh` to create a channel other than the default `escchannel`, you need pass that name to the `addorg3.sh` script.
 ```
 ./init.sh up createChannel -c channel1
 cd addOrg3
