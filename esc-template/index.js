@@ -5,7 +5,7 @@ const yargs = require('yargs');
 
 let config = {
   conexionPath: "../../network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "../../esc/traffic-flow-street1/results",
+  resultsPath: "./results",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "analytics_chaincode",
@@ -26,11 +26,11 @@ let config = {
   updateDataContract: "updateData",
   evaluateHistoryContract: "evaluateHistory",
   evaluateFrequencyContract: "evaluateFrequency",
-  queryAnalysisHolderContract: "queryStreetFlows",
+  queryAnalysisHolderContract: "queryAnalysis",
   analysisHolderId: 1,
   analysisContract: "analysis",
   dataStorageContract: "createSensor",
-  calculationStorageContract: "createStreetFlows",
+  calculationStorageContract: "calculationStorage",
 
 
 
