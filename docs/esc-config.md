@@ -1,9 +1,9 @@
-# Experiments configuration and execution
+# ESC Configuration
 
-1. Please read the README.md file first and install all necessary components first
+In order to implement an ESC you need to instantiate a new ESC. A template for the ESC can be found at
+o to [**elastic-smart-contracts/esc-template/**](https://github.com/isa-group/elastic-smart-contracts/blob/master/esc-template).
 
-2. go to **elastic-smart-contracts/esc/** and  for each folder in configure the index.js inside it:
-
+ The main file in the ESC ```index.js``` has the following number of parameters:
   - **conexionPath**: path to the json file for the conexion to the network.
   - **resultsPath**: path to save the results to.
   - **identityName**: name of the identity to use, usually "admin".
@@ -31,21 +31,3 @@
   - **analysisContract**: name of the contract responsible for analysing the data.
   - **dataStorageContract**: name of the contract responsible for creating the data storage.
   - **calculationStorageContract**: name of the contract responsible for creating the calculation storage.
-
-Once all the parameters have been configured for each of the chaincodes to use, execute this scripts in order located in the root of the repositoory:
-```
-./init.sh
-./setup.sh
-```
-Then execute the following script with the path of every chaincode you want to execute in paralel, for instance:
-
-```
-./start.sh ./esc/traffic-flow-street1/index.js ./esc/traffic-flow-street2/index.js ./esc/analysis/index.js
-```
-
-Whenever you want to bring the network down once the experiments have finished, execute:
-
-
-```
-./stop.sh
-```
