@@ -3,8 +3,8 @@
 version: '2'
 
 networks:
-  governify:
-    name: governify_network_blockchain
+  esc:
+    name: esc_network_blockchain
 
 services:
   couchdb4:
@@ -22,7 +22,7 @@ services:
     ports:
       - "9984:5984"
     networks:
-      - governify
+      - esc
 
   peer0.org3.example.com:
     environment:
@@ -36,4 +36,4 @@ services:
     depends_on:
       - couchdb4
     networks:
-      - governify
+      - esc

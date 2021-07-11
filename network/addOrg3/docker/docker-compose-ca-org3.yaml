@@ -3,8 +3,8 @@
 version: '2'
 
 networks:
-  governify:
-    name: governify_network_blockchain
+  esc:
+    name: esc_network_blockchain
 
 services:
   ca_org3:

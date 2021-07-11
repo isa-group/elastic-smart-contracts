@@ -1,7 +1,7 @@
 {
-    "name": "governify",
+    "name": "esc",
     "version": "1.0.0",
-    "description": "Governify contract implemented in JavaScript",
+    "description": "Esc contract implemented in JavaScript",
     "main": "index.js",
     "engines": {
         "node": ">=12",

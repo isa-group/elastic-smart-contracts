@@ -8,21 +8,26 @@ const { Gateway, Wallets } = require('fabric-network');
 
 
 let config = {
-  conexionPath: "/home/pablo/Escritorio/Gover/Elastic/network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
+  conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
   identityName: "admin",
   channelName: "escchannel",
-  chaincodeNames: ["traffic-flow-street1","traffic-flow-street2"],
+  chaincodeNames: ["street1","street2"],
   queryStorages: ["queryStreetFlows","queryStreetFlows"],
 
 
   executionTime: 60,
+
+  jamThreshold: 1,
+  jamFactor: 1.5,
+  emptyThreshold: 0.5,
+  emptyFactor: 1.5,
 
 
 
 }
 
 const argv = yargs
-  .command('start', 'start the experiment', {
+  .command('start', 'start the esc', {
     }
   )
 .help().alias('help', 'h').argv; 
@@ -52,9 +57,15 @@ async function averagesAnalysis() {
     // Get the network (channel) our contract is deployed to.
     const network = await gateway.getNetwork(config.channelName);
 
-    let contractAnalysis =  network.getContract('analysis');
+    let contractAnalysis =  network.getContract('intersection');
     let data = [];
     let count = 0;
+    let params = {
+      jamThreshold: config.jamThreshold,
+      jamFactor: config.jamFactor,
+      emptyThreshold: config.emptyThreshold,
+      emptyFactor: config.emptyFactor,
+    }
 
     for(i in config.chaincodeNames){
       let contract =  network.getContract(config.chaincodeNames[i]);
@@ -70,10 +81,14 @@ async function averagesAnalysis() {
             data = data.concat(JSON.parse(res.toString())[0].Record.data);
             if(count >= config.chaincodeNames.length){
               count=0;
+
               if(data.length>0){
-                contractAnalysis.submitTransaction('addAverage', (data.reduce((a,b)=> a +b.carsPerSecond.total,0)/data.length).toString())
+                params.average = (data.reduce((a,b)=> a +b.carsPerSecond.total,0)/data.length).toString();
+                contractAnalysis.submitTransaction('addAverage', JSON.stringify(params));
+
               }else{
-                contractAnalysis.submitTransaction('addAverage', "0")
+                params.average = "0";
+                contractAnalysis.submitTransaction('addAverage', JSON.stringify(params));
               }
               setTimeout(() => {         
                 data=[];
@@ -119,7 +134,7 @@ async function query() {
     // Get the network (channel) our contract is deployed to.
     const network = await gateway.getNetwork(config.channelName);
 
-    let contractAnalysis =  network.getContract('analysis');
+    let contractAnalysis =  network.getContract('intersection');
     
     let result = await contractAnalysis.evaluateTransaction('queryAveragesStorage');
 
@@ -140,6 +155,6 @@ if (argv._.includes('query')) {
 }
 module.exports.config = config;
 module.exports.chaincodeName = function(){
-  console.log("analysis")
+  console.log("intersection")
 };
 

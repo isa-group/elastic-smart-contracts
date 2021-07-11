@@ -1,7 +1,7 @@
 {
-    "name": "governify",
+    "name": "esc",
     "version": "1.0.0",
-    "description": "governify application implemented in JavaScript",
+    "description": "esc application implemented in JavaScript",
     "engines": {
         "node": ">=8",
         "npm": ">=5"

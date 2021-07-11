@@ -217,7 +217,7 @@ function createOrgs() {
 
 # After we create the org crypto material and the application channel genesis block,
 # we can now bring up the peers and ordering service. By default, the base
-# file for creating the network is "docker-compose-governify-net.yaml" in the ``docker``
+# file for creating the network is "docker-compose-esc-net.yaml" in the ``docker``
 # folder. This file defines the environment variables and file mounts that
 # point the crypto material and genesis block that were created in earlier.
 
@@ -313,7 +313,7 @@ CC_COLL_CONFIG="NA"
 # chaincode init function defaults to "NA"
 CC_INIT_FCN="NA"
 # use this as the default docker-compose yaml definition
-COMPOSE_FILE_BASE=docker/docker-compose-governify-net.yaml
+COMPOSE_FILE_BASE=docker/docker-compose-esc-net.yaml
 # docker-compose.yaml file if you are using couchdb
 COMPOSE_FILE_COUCH=docker/docker-compose-couch.yaml
 # certificate authorities compose file

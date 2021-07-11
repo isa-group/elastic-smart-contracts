@@ -4,8 +4,8 @@ const csv = require('csvtojson');
 const yargs = require('yargs');
 
 let config = {
-  conexionPath: "../../network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./results",
+  conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
+  resultsPath: "./esc-template/results",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "analytics_chaincode",
@@ -20,7 +20,7 @@ let config = {
   frequencyControlCalculate: 5,
   maximumTimeAnalysis: 100,
   minimumTimeAnalysis: 50,
-  experimentNumber: 2,
+  elasticityMode: 2,
   experimentName: "test2",
     
   updateDataContract: "updateData",
@@ -55,20 +55,52 @@ const argv = yargs
 /**
  * Call the harvester in esc_core/index regularly with the frequency given and in case of having an elastic frequency it monitors any changes in it and applies it. 
  * 
- * In this function it is defined from where the data is taken to introduce it in the blockchain.
+ * In this function it is defined from where and how the data is taken to introduce it in the blockchain.
  * @function
  * @param {number} frequency - The initial frequency in seconds to harvest data.
  */
 async function intervalHarvester(frequency) {
 
- /** HARVEST HOOK */
+  if(config.elasticityMode == 3){
+    ESC.frequencyChanged();
+    let interval = await setInterval(() => {
+  
+      ESC.getNewFrequency().then((res) =>{
+  
+        if(res.change){
+  
+          clearInterval(interval);
+
+          if(!stop){
+            intervalHarvester(res.newFrequency)
+          }
+          
+  
+        }else{
+  
+          let newData = hookData();
+  
+          ESC.harvesterHook(harvesterHookParams, newData);
+        }
+      })
+      
+    }, frequency*1000);
+  }else{
+    let interval = await setInterval(() => {
+    
+      let newData = hookData();
+  
+      ESC.harvesterHook(harvesterHookParams, newData);
+  
+    }, frequency*1000);
+  
+    setTimeout(() => {
+      clearInterval(interval);
+      console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
+    }, config.executionTime*1000 + 100);
+  }
 
 }
-
-
-
-
-
 
 if (argv._.includes('start')) {
 
@@ -88,10 +120,23 @@ if (argv._.includes('start')) {
   
   
     intervalHarvester(config.harvestFrequency);
+
+    if(config.elasticityMode == 3) {
+      setTimeout(() => {
+        stop = true;
+        console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
+      }, config.executionTime*1000 + 100);
+    }
     
   
   })
 
+}
+
+// New data to be introduced, define here how the data is collected 
+function hookData(){
+  let newData = {}
+  return newData;
 }
 
 module.exports.config = config;

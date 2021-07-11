@@ -3,8 +3,8 @@
 version: '2.4'
 
 networks:
-  governify:
-    name: governify_network_blockchain
+  esc:
+    name: esc_network_blockchain
 
 services:
 
@@ -24,7 +24,7 @@ services:
       - ../organizations/fabric-ca/org1:/etc/hyperledger/fabric-ca-server
     container_name: ca_org1
     networks:
-      - governify
+      - esc
 
   ca_org2:
     image: hyperledger/fabric-ca:latest
@@ -42,7 +42,7 @@ services:
       - ../organizations/fabric-ca/org2:/etc/hyperledger/fabric-ca-server
     container_name: ca_org2
     networks:
-      - governify
+      - esc
 
   ca_orderer:
     image: hyperledger/fabric-ca:latest
@@ -60,4 +60,4 @@ services:
       - ../organizations/fabric-ca/ordererOrg:/etc/hyperledger/fabric-ca-server
     container_name: ca_orderer
     networks:
-      - governify
+      - esc

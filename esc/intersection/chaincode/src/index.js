@@ -14,13 +14,15 @@ class Analysis extends Contract {
         const storage = {
             storageId: 1,
             averages: [],
+            stopLightParam: 1,
         };
     
         await ctx.stub.putState('AVERAGES', Buffer.from(JSON.stringify(storage)));
     }
 
-    async addAverage(ctx, data) {
-        let average = parseFloat(data);
+    async addAverage(ctx, parameters) {
+        let params = JSON.parse(parameters.toString());
+        let average = parseFloat(params.average);
 
         let query = await this.queryAveragesStorage(ctx);
         let storage = JSON.parse(query.toString())[0].Record;
@@ -29,6 +31,17 @@ class Analysis extends Contract {
         if(storage.averages.length > 30){
             storage.averages = storage.averages.slice(Math.max(storage.averages.length) - 30, 0)
         }
+
+        let flow_global = storage.averages.reduce((a,b) => a+b,0)/storage.averages.length;
+
+        if(flow_global > params.jamThreshold){
+            storage.stopLightParam = flow_global * params.jamFactor;
+        }
+
+        if(flow_global < params.emptyThreshold){
+            storage.stopLightParam = -(flow_global * params.emptyFactor);
+        }
+
         await ctx.stub.putState('AVERAGES', Buffer.from(JSON.stringify(storage)));
     }
 

@@ -15,12 +15,12 @@ var chaincodes = [];
 var dataStorageContracts = [];
 var calculationStorageContracts = [];
 
-let analysis = false;
+let intersection = false;
 let pro = new Promise((res,rej) => {
     fs.readdir(dir,(err,files) => {
-        analysis= files.includes('analysis')
+        intersection= files.includes('intersection')
         paths= paths.concat(files.filter((path)=> {
-           return (path != 'esc' && path != 'analysis');
+           return (path != 'esc' && path != 'intersection');
         }))
         res(true)   
     })
@@ -36,7 +36,7 @@ pro.then(()=>{
         calculationStorageContracts.push(a.config.calculationStorageContract);
 
     }
-    main(chaincodes,dataStorageContracts,calculationStorageContracts,analysis);
+    main(chaincodes,dataStorageContracts,calculationStorageContracts,intersection);
 });
 
 
@@ -77,7 +77,7 @@ async function main(chaincodes,dataStorageContracts,calculationStorageContracts,
 
         // Get the contract from the network.
         if(analysis){
-            let contract = network.getContract('analysis');
+            let contract = network.getContract('intersection');
             await contract.submitTransaction('createStorage');
             console.log("Averages storage created")
         }

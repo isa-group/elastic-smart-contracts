@@ -3,13 +3,12 @@ var ESC = require("../../esc_core");
 const csv = require('csvtojson');
 const yargs = require('yargs');
 
-
 let config = {
-  conexionPath: "/home/pablo/Escritorio/Gover/Elastic/network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "/home/pablo/Escritorio/Gover/Elastic/esc/traffic-flow-street2/results",
+  conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
+  resultsPath: "./esc/street2/results",
   identityName: "admin",
   channelName: "escchannel",
-  chaincodeName: "traffic-flow-street2",
+  chaincodeName: "street2",
   csvResultsCalculationsHeader: "NUMBER_DETECTIONS,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 
@@ -21,7 +20,7 @@ let config = {
   frequencyControlCalculate: 5,
   maximumTimeAnalysis: 100,
   minimumTimeAnalysis: 50,
-  experimentNumber: 2,
+  elasticityMode: 2,
   experimentName: "test2",
     
   updateDataContract: "updateData2",
@@ -46,7 +45,7 @@ let analyserParams = {
 }
 
 const argv = yargs
-    .command('start', 'start the experiment', {
+    .command('start', 'start the esc', {
       }
     )
 .help().alias('help', 'h').argv; 
@@ -56,12 +55,13 @@ const argv = yargs
 /**
  * Call the harvester in esc_core/index regularly with the frequency given and in case of having an elastic frequency it monitors any changes in it and applies it. 
  * 
- * In this function it is defined from where the data is taken to introduce it in the blockchain.
+ * In this function it is defined from where and how the data is taken to introduce it in the blockchain.
  * @function
  * @param {number} frequency - The initial frequency in seconds to harvest data.
  */
 async function intervalHarvester(frequency) {
-  if(config.experimentNumber == 3){
+
+  if(config.elasticityMode == 3){
     ESC.frequencyChanged();
     let interval = await setInterval(() => {
   
@@ -78,15 +78,7 @@ async function intervalHarvester(frequency) {
   
         }else{
   
-          let newData = {
-            detectionDateTime: Date.now(),
-            numberCars: inde.filter((i) => {
-                return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= 0.5 &&
-                 (velocities[i] * (Date.now() - initialTime - config.harvestFrequency*1000 - timeStart[i])/3600000) < 0.5;
-            }).length,
-            sensorKilometer: 0.5,
-            direction: 'ASCENDENT',
-          };
+          let newData = hookData();
   
           ESC.harvesterHook(harvesterHookParams, newData);
         }
@@ -96,15 +88,7 @@ async function intervalHarvester(frequency) {
   }else{
     let interval = await setInterval(() => {
     
-      let newData = {
-        detectionDateTime: Date.now(),
-        numberCars: inde.filter((i) => {
-            return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= 0.5 &&
-             (velocities[i] * (Date.now() - initialTime - config.harvestFrequency*1000 - timeStart[i])/3600000) < 0.5;
-        }).length,
-        sensorKilometer: 0.5,
-        direction: 'ASCENDENT',
-      };
+      let newData = hookData();
   
       ESC.harvesterHook(harvesterHookParams, newData);
   
@@ -112,15 +96,11 @@ async function intervalHarvester(frequency) {
   
     setTimeout(() => {
       clearInterval(interval);
-      console.log("************** EXPERIMENT COMPLETED, SHUTING DOWN ********************")
+      console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
     }, config.executionTime*1000 + 100);
   }
+
 }
-
-
-
-
-
 
 if (argv._.includes('start')) {
 
@@ -154,15 +134,30 @@ if (argv._.includes('start')) {
     
     
   
-    if(config.experimentNumber == 3) {
+    if(config.elasticityMode == 3) {
       setTimeout(() => {
         stop = true;
-        console.log("************** EXPERIMENT COMPLETED, SHUTING DOWN ********************")
+        console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
       }, config.executionTime*1000 + 100);
     }
   
   })
 
+}
+
+function hookData(){
+
+  let newData = {
+    detectionDateTime: Date.now(),
+    numberCars: inde.filter((i) => {
+        return (velocities[i] * (Date.now() - initialTime - timeStart[i])/3600000) >= 0.5 &&
+         (velocities[i] * (Date.now() - initialTime - config.harvestFrequency*1000 - timeStart[i])/3600000) < 0.5;
+    }).length,
+    sensorKilometer: 0.5,
+    direction: 'ASCENDENT',
+  };
+  
+  return newData;
 }
  
 module.exports.config = config;

@@ -1,5 +1,5 @@
 {
-    "name": "governify-network-org${ORG}",
+    "name": "esc-network-org${ORG}",
     "version": "1.0.0",
     "client": {
         "organization": "Org${ORG}",

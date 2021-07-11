@@ -8,8 +8,8 @@ volumes:
   peer0.org2.example.com:
 
 networks:
-  governify:
-    name: governify_network_blockchain
+  esc:
+    name: esc_network_blockchain
 
 services:
 
@@ -53,7 +53,7 @@ services:
       - 7050:7050
       - 7053:7053
     networks:
-      - governify
+      - esc
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com
@@ -63,7 +63,7 @@ services:
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=governify_network_blockchain
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=esc_network_blockchain
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -90,7 +90,7 @@ services:
     ports:
       - 7051:7051
     networks:
-      - governify
+      - esc
 
   peer0.org2.example.com:
     container_name: peer0.org2.example.com
@@ -100,7 +100,7 @@ services:
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=governify_network_blockchain
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=esc_network_blockchain
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -127,7 +127,7 @@ services:
     ports:
       - 9051:9051
     networks:
-      - governify
+      - esc
   
   cli:
     container_name: cli
@@ -151,4 +151,4 @@ services:
       - peer0.org1.example.com
       - peer0.org2.example.com
     networks:
-      - governify
+      - esc
