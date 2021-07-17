@@ -44,6 +44,16 @@ let analyserParams = {
  // analyser params
 }
 
+
+
+// New data to be introduced, define here how the data is collected 
+function hookData(){
+  let newData = {}
+  return newData;
+}
+
+
+
 const argv = yargs
   .command('start', 'start the esc', {
     }
@@ -133,11 +143,7 @@ if (argv._.includes('start')) {
 
 }
 
-// New data to be introduced, define here how the data is collected 
-function hookData(){
-  let newData = {}
-  return newData;
-}
+
 
 module.exports.config = config;
 module.exports.chaincodeName = function(){
