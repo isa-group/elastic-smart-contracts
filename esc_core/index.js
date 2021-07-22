@@ -87,7 +87,7 @@ async function harvesterListener() {
         event = event.payload.toString();
         event = JSON.parse(event); 
 
-        if (event.type === 'analysis'){
+        if (event.type === 'analysis' && config.chaincodeName == event.chaincode){
             config.analysisCommited = true;
             if(warmUp){
 
@@ -166,7 +166,7 @@ async function harvesterHook(params, newData) {
 
         config.data.push(newData);
 
-        if( config.data.length >= 5 && config.analysisCommited){
+        if( (config.data.length >= 3 || config.chaincodeName == "intersection") && config.analysisCommited){
             let totalBeginHR = process.hrtime();
             let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
             config.analysisCommited = false;
@@ -176,8 +176,11 @@ async function harvesterHook(params, newData) {
             params.data = JSON.stringify(submit);
             params.timeData = config.dataTimeLimit;
             params.frequency = config.harvestFrequency;
-            
-    
+
+            const result = await contract.evaluateTransaction(config.queryDataStorageContract);
+
+            params.dataStorage = result.toString();
+
             contract.submitTransaction(config.updateDataContract, JSON.stringify(params)).then(() => {
                 let totalEndHR = process.hrtime()
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
@@ -224,14 +227,13 @@ async function analyser(params) {
         });
 
         let fromDate = Date.now();
-        let count = 0;
-
+       
         const listener = await contract.addContractListener((event) => {
     
             event = event.payload.toString();
             event = JSON.parse(event); 
     
-            if (event.type === 'analysis'){
+            if (event.type === 'analysis' && config.chaincodeName == event.chaincode){
     
                 config.dataTimeLimit = event.timeData;
     
@@ -251,12 +253,16 @@ async function analyser(params) {
                 }
     
                 console.log(`Analysis event detected, waiting ${config.analysisFrequency} seconds to launch transaction`);
+                if(config.chaincodeName == 'intersection'){
+                    console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+                    console.log(event.execDuration)
+                }
                 if(event.execDuration > 0){
                     config.execTimes.push(event.execDuration);
                 }
     
     
-            }else if (event.type === 'updateData'){
+            }else if (event.type === 'updateData' && config.chaincodeName == event.chaincode){
     
                 
                 if(config.calculationDates.length> 0){
@@ -266,8 +272,7 @@ async function analyser(params) {
                 params.fromDates = JSON.stringify(config.calculationDates);
                 params.frequency = event.frequency;
                 analysis(params);
-                config.calculationDates = [];
-                count = 0;                        
+                config.calculationDates = [];                        
                  
          
             }   
@@ -338,10 +343,11 @@ async function analysis(params) {
     try {
         
 
-        const result = await contract.evaluateTransaction(config.queryAnalysisHolderContract, config.analysisHolderId);
+        const result = await contract.evaluateTransaction(config.queryAnalysisHolderContract);
 
         params.analysisHolder = result.toString();
         // Submit the specified transaction.
+
         await contract.submitTransaction(config.analysisContract, JSON.stringify(params));
 
         // Disconnect from the gateway.

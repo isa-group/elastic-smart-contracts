@@ -15,12 +15,12 @@ var chaincodes = [];
 var dataStorageContracts = [];
 var calculationStorageContracts = [];
 
-let intersection = false;
+
 let pro = new Promise((res,rej) => {
     fs.readdir(dir,(err,files) => {
-        intersection= files.includes('intersection')
+
         paths= paths.concat(files.filter((path)=> {
-           return (path != 'esc' && path != 'intersection');
+           return (path != 'esc');
         }))
         res(true)   
     })
@@ -36,7 +36,7 @@ pro.then(()=>{
         calculationStorageContracts.push(a.config.calculationStorageContract);
 
     }
-    main(chaincodes,dataStorageContracts,calculationStorageContracts,intersection);
+    main(chaincodes,dataStorageContracts,calculationStorageContracts);
 });
 
 
@@ -48,7 +48,7 @@ pro.then(()=>{
  * @param {array} dataStorageContracts - The names of the smart contracts that create each data storage for each chaincode.
  * @param {array} calculationStorageContracts - The names of the smart contracts that create each calculation storage for each chaincode.
  */
-async function main(chaincodes,dataStorageContracts,calculationStorageContracts,analysis) {
+async function main(chaincodes,dataStorageContracts,calculationStorageContracts) {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..',  '..', 'network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -75,12 +75,6 @@ async function main(chaincodes,dataStorageContracts,calculationStorageContracts,
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('escchannel');
 
-        // Get the contract from the network.
-        if(analysis){
-            let contract = network.getContract('intersection');
-            await contract.submitTransaction('createStorage');
-            console.log("Averages storage created")
-        }
         
 
         for(let i =0; i<chaincodes.length; i++){

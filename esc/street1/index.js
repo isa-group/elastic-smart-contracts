@@ -27,6 +27,7 @@ let config = {
   evaluateHistoryContract: "evaluateHistory",
   evaluateFrequencyContract: "evaluateFrequency",
   queryAnalysisHolderContract: "queryStreetFlows",
+  queryDataStorageContract: "querySensor",
   analysisHolderId: 1,
   analysisContract: "analysis",
   dataStorageContract: "createSensor",
@@ -37,7 +38,7 @@ let config = {
 }
 
 let harvesterHookParams = {
-  numberSensor: 1
+  
 }
 
 let analyserParams = {

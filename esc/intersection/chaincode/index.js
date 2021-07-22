@@ -1,6 +1,6 @@
 'use strict';
 
-const Analysis = require('./src');
+const intersection = require('./src');
 
-module.exports.Analysis = Analysis;
-module.exports.contracts = [ Analysis ];
+module.exports.intersection = intersection;
+module.exports.contracts = [ intersection ];

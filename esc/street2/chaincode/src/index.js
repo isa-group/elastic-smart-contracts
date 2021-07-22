@@ -8,12 +8,12 @@ class traffic_flow_street2 extends Contract {
        
     }
 
-    async querySensor2(ctx, numberSensor) {
+    async querySensor2(ctx) {
     
         let queryString = `{
             "selector": {
                 "numberSensor": {
-                    "$eq": ${numberSensor}
+                    "$eq": ${1}
                 }
             }
         }`;
@@ -32,12 +32,12 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.putState('SENSOR1', Buffer.from(JSON.stringify(sensor)));
     }
 
-    async queryStreetFlows(ctx, streetId) {
+    async queryStreetFlows(ctx) {
     
         let queryString = `{
             "selector": {
                 "streetId": {
-                    "$eq": ${streetId}
+                    "$eq": ${1}
                 }
             }
         }`;
@@ -58,8 +58,7 @@ class traffic_flow_street2 extends Contract {
 
     async updateData2(ctx, params) {
         let parameters = JSON.parse(params.toString())
-        let s = await this.querySensor2(ctx, parseInt(parameters.numberSensor));
-        let sensor = JSON.parse(s.toString())[0];
+        let sensor = JSON.parse(parameters.dataStorage)[0];
         let det = JSON.parse(parameters.data);
         let time = Date.now();
         sensor.Record.detections = sensor.Record.detections.filter((i) => {
@@ -73,6 +72,7 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.putState(sensor.Key, Buffer.from(JSON.stringify(sensor.Record)));
 
         let event = {
+            chaincode: 'street2',
             type: 'updateData',
             timeData: parameters.timeData,
             frequency: parameters.frequency
@@ -101,10 +101,10 @@ class traffic_flow_street2 extends Contract {
         let totalEvent = [];
         if(frmDates.length > 0){
 
-            for(let j=1; j<=numSens; j++){
-                let sensor = await this.querySensor2(ctx, j);
-                sensors.push(JSON.parse(sensor.toString())[0]);
-            }
+            
+            let sensor = await this.querySensor2(ctx);
+            sensors.push(JSON.parse(sensor.toString())[0]);
+            
     
             for(let k=0; k<frmDates.length; k++){
                 let fromDate = frmDates[k];
@@ -166,6 +166,7 @@ class traffic_flow_street2 extends Contract {
         let info = [bySectionEvent, totalEvent];
 
         let event = {
+            chaincode: 'street2',
             execDuration: totalDuration,
             analysisList: totalDetectionsEvent,
             timeData: parameters.timeData,
