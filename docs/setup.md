@@ -52,12 +52,11 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.3.1 1.4.9
     ```
     export PATH=<path to bin>:$PATH
     ```
-    or copy the /bin folder inside the elastic smart contracts folder you just cloned and uncomment line 15 of elastic-smart-contracts/base-network/network.sh      
-    which is:
+    and comment comment line 9 of elastic-smart-contracts/network/init.sh which is:
     ```
-    export PATH=${PWD}/../bin:${PWD}:$PATH
+    export PATH=${PWD}/../bin:$PATH
     ```
-    this will cause the scripts to always point to the binaries placed at elastic-smart-contracts, regardless of being in a new terminal.
+    or leave that line uncommented and place the bin folder in elastic-smart-contracts/bin, this line will cause the scripts to always point to the binaries placed at elastic-smart-contracts, regardless of being in a new terminal. This is the recommended setup.
     
     (bin is already in the .gitignore file but you should be careful not to upload the uncommented line of network.sh)
 
