@@ -60,7 +60,7 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.3.1 1.4.9
     
     (bin is already in the .gitignore file but you should be careful not to upload the commented line of init.sh if you commented it)
 
-9. Go to **elastic-smart-contracts/esc/** and run the following command, do the same for **elastic-smart-contracts/esc/*/chaincode**, **elastic-smart-contracts/esc_core/** and **elastic-smart-contracts/network/connection**:
+9. Go to **elastic-smart-contracts/esc/** and run the following command, do the same for **elastic-smart-contracts/esc/***, **elastic-smart-contracts/esc/*/chaincode**, **elastic-smart-contracts/esc_core/** and **elastic-smart-contracts/network/connection**:
 ```
 npm install
 ```
