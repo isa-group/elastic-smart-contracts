@@ -103,47 +103,50 @@ async function harvesterListener() {
                     avgExecTime = 0;
                 }
 
-            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode === "timeWindow"){
+            }else{
 
-                avgExecTime += event.execDuration/config.frequencyControlCalculate;
+                if(controlCount >= config.frequencyControlCalculate){
+
+                    avgExecTime += event.execDuration/config.frequencyControlCalculate;
                 
-                contract.evaluateTransaction(config.evaluateHistoryContract, config.dataTimeLimit, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
-                    let newTime = JSON.parse(res.toString());
-                    if(newTime < 32){
-                        newTime = 32;
-                    }else if (newTime > 65536){
-                        newTime = 65536;
-                    }
+                    if(config.elasticityMode === "timeWindow"){
+                        
+                        contract.evaluateTransaction(config.evaluateHistoryContract, config.dataTimeLimit, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
+                            let newTime = JSON.parse(res.toString());
+                            if(newTime < 32){
+                                newTime = 32;
+                            }else if (newTime > 65536){
+                                newTime = 65536;
+                            }
 
-                    if(newTime > 0 && newTime != config.dataTimeLimit){
-                        config.dataTimeLimit = newTime;
-                        console.log("New Time Data: " + config.dataTimeLimit)
-                    }
-                });
-                controlCount = 0;
-                avgExecTime = 0;
-            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode === "harvestFrequency"){
-                avgExecTime += event.execDuration/config.frequencyControlCalculate;
-                contract.evaluateTransaction(config.evaluateFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
-                    let newTime = JSON.parse(res.toString());
-                    if(newTime < 0.1){
-                        newTime = 0.1;
-                    }else if (newTime > 60){
-                        newTime = 60;
-                    }
-                    
-                    if(newTime > 0 && newTime != config.harvestFrequency){
-                    	 console.log("New Harvest Frequency: " + newTime);
-                        config.changeFrequency = {change: true, newFrequency: newTime}
-                        config.harvestFrequency = newTime;
+                            if(newTime > 0 && newTime != config.dataTimeLimit){
+                                config.dataTimeLimit = newTime;
+                                console.log("New Time Data: " + config.dataTimeLimit)
+                            }
+                        });
+                    }else if(config.elasticityMode === "harvestFrequency"){
+                        contract.evaluateTransaction(config.evaluateFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
+                            let newTime = JSON.parse(res.toString());
+                            if(newTime < 0.1){
+                                newTime = 0.1;
+                            }else if (newTime > 60){
+                                newTime = 60;
+                            }
+                            
+                            if(newTime > 0 && newTime != config.harvestFrequency){
+                                console.log("New Harvest Frequency: " + newTime);
+                                config.changeFrequency = {change: true, newFrequency: newTime}
+                                config.harvestFrequency = newTime;
 
+                            }
+                        });
                     }
-                });
-                controlCount = 0;
-                avgExecTime = 0;
-            }else if(!warmUp && controlCount < config.frequencyControlCalculate){
-                controlCount++;
-                avgExecTime += event.execDuration/config.frequencyControlCalculate;
+                    controlCount = 0;
+                    avgExecTime = 0;
+                }else{
+                    controlCount++;
+                    avgExecTime += event.execDuration/config.frequencyControlCalculate;
+                }
             }
         }         
     });
@@ -291,26 +294,17 @@ async function analyser(params) {
             fs.writeFileSync(resultFile, csvBody,'utf8');
             gateway.disconnect();
             let min = config.execTimes.reduce((a,b)=> {
-                if(b<a){
-                    return b
-                }else{
-                    return a
-                }
+                return b<a ? b : a;
             });
             let max = config.execTimes.reduce((a,b)=> {
-                if(b>a){
-                    return b
-                }else{
-                    return a
-                }
+                return b>a ? b : a;
             });
             let avg = config.execTimes.reduce((a,b)=> {
                 return a+b;
             })/config.execTimes.length;
             let stdev = config.execTimes.map((a) => {
                 return ((a - avg)**2)/config.execTimes.length;
-            })
-            .reduce((a,b)=> {
+            }).reduce((a,b)=> {
                 return a+b;
             });
             csvBodyCalculated += `${config.analysisFrequency},${config.dataTimeLimit},${min},${max},${avg},${Math.sqrt(stdev)},${config.execTimes.length},${config.countCalculationsOverMax}\n`;
