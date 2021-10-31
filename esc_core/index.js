@@ -124,7 +124,6 @@ async function harvesterListener() {
                 avgExecTime = 0;
             }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode >= 3){
                 avgExecTime += event.execDuration/config.frequencyControlCalculate;
-                
                 contract.evaluateTransaction(config.evaluateFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
                     let newTime = JSON.parse(res.toString());
                     if(newTime < 0.1){
@@ -132,10 +131,11 @@ async function harvesterListener() {
                     }else if (newTime > 60){
                         newTime = 60;
                     }
-
+                    
                     if(newTime > 0 && newTime != config.harvestFrequency){
-
+                    	 console.log("New Harvest Frequency: " + newTime);
                         config.changeFrequency = {change: true, newFrequency: newTime}
+                        config.harvestFrequency = newTime;
 
                     }
                 });
