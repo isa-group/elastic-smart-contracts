@@ -20,7 +20,7 @@ o to [**elastic-smart-contracts/esc-template/**](https://github.com/isa-group/el
   - **frequencyControlCalculate**: number of calculations between elasticity control.
   - **maximumTimeAnalysis**: maximum time allowed for the calculation before aplying elasticity in miliseconds.
   - **minimumTimeAnalysis**: minimum time allowed for the calculation before aplying elasticity in miliseconds.
-  - **elasticityMode**: type of experiment, being "1" with no elasticity (default), "2" with elasticity in time window and "3" with elasticty in frequency.
+  - **elasticityMode**: type of experiment, being "noElasticity" with no elasticity (default), "timeWindow" with elasticity in time window and "harvestFrequency" with elasticty in harvest frequency.
   - **experimentName**: prefix that will be used for the result files.
     
   - **updateDataContract**: name of the contract responsible for uploading new data to the Blockchain.
@@ -55,7 +55,7 @@ There is a function `hookData` in which the retrieval of new data is defined. Th
     frequencyControlCalculate: 5,
     maximumTimeAnalysis: 100,
     minimumTimeAnalysis: 50,
-    elasticityMode: 2,
+    elasticityMode: "timeWindow",
     experimentName: "test2",
         
     updateDataContract: "updateData",

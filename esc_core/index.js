@@ -103,7 +103,7 @@ async function harvesterListener() {
                     avgExecTime = 0;
                 }
 
-            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode == 2){
+            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode === "timeWindow"){
 
                 avgExecTime += event.execDuration/config.frequencyControlCalculate;
                 
@@ -122,7 +122,7 @@ async function harvesterListener() {
                 });
                 controlCount = 0;
                 avgExecTime = 0;
-            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode >= 3){
+            }else if(!warmUp && controlCount >= config.frequencyControlCalculate && config.elasticityMode === "harvestFrequency"){
                 avgExecTime += event.execDuration/config.frequencyControlCalculate;
                 contract.evaluateTransaction(config.evaluateFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
                     let newTime = JSON.parse(res.toString());
