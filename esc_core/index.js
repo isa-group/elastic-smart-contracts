@@ -78,8 +78,7 @@ async function connect() {
 async function harvesterListener() {
 
     let warmUp = true;
-    let controlCount = 0;
-    let avgExecTime = 0;
+    let [controlCount,avgExecTime] = [0,0];
 
 
     const listener = await contract.addContractListener((event) => {
@@ -111,7 +110,7 @@ async function harvesterListener() {
                 
                     if(config.elasticityMode === "timeWindow"){
                         
-                        contract.evaluateTransaction(config.evaluateHistoryContract, config.dataTimeLimit, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
+                        contract.evaluateTransaction(config.evaluateWindowTimeContract, config.dataTimeLimit, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
                             let newTime = JSON.parse(res.toString());
                             if(newTime < 32){
                                 newTime = 32;
@@ -125,7 +124,7 @@ async function harvesterListener() {
                             }
                         });
                     }else if(config.elasticityMode === "harvestFrequency"){
-                        contract.evaluateTransaction(config.evaluateFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
+                        contract.evaluateTransaction(config.evaluateHarvestFrequencyContract, config.harvestFrequency, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
                             let newTime = JSON.parse(res.toString());
                             if(newTime < 0.1){
                                 newTime = 0.1;
