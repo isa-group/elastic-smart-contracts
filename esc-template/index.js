@@ -20,7 +20,7 @@ let config = {
   frequencyControlCalculate: 5,
   maximumTimeAnalysis: 100,
   minimumTimeAnalysis: 50,
-  elasticityMode: 2,
+  elasticityMode: "timeWindow",
   experimentName: "test2",
     
   updateDataContract: "updateData",
@@ -71,7 +71,7 @@ const argv = yargs
  */
 async function intervalHarvester(frequency) {
 
-  if(config.elasticityMode == 3){
+  if(config.elasticityMode === "harvestFrequency"){
     ESC.frequencyChanged();
     let interval = await setInterval(() => {
   
@@ -131,7 +131,7 @@ if (argv._.includes('start')) {
   
     intervalHarvester(config.harvestFrequency);
 
-    if(config.elasticityMode == 3) {
+    if(config.elasticityMode === "harvestFrequency") {
       setTimeout(() => {
         stop = true;
         console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")

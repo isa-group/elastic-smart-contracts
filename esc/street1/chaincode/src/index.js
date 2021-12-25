@@ -122,17 +122,10 @@ class traffic_flow_street1 extends Contract {
         let parameters = JSON.parse(params.toString())
         let strFlow = JSON.parse(parameters.analysisHolder)[0].Record;
         let frmDates = JSON.parse(parameters.fromDates);
-        let sensors = [];
-        let bySection = [];
-        let totalDetections = 0;
-        let total = 0;
         let numSens = parseInt(parameters.numberSensors);
-        let totalDetectionsStored = 0;
-        let totalDetectionsStoredList = [];
+        let [totalDetections, total, totalDetectionsStored] = [0,0,0];
+        let [sensors, bySection, totalDetectionsStoredList, totalDetectionsEvent, bySectionEvent, totalEvent] = [[],[],[],[],[],[]];
 
-        let totalDetectionsEvent = [];
-        let bySectionEvent = [];
-        let totalEvent = [];
         if(frmDates.length > 0){
 
             for(let j=1; j<=numSens; j++){
@@ -154,8 +147,9 @@ class traffic_flow_street1 extends Contract {
                     for(let i=0; i< detections.length; i++){
                         numberCars +=  parseInt(detections[i].numberCars);
                     }
-                    bySection.push(parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3)));
-                    total += parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
+                    let carsPerSecondAux = parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
+                    bySection.push(carsPerSecondAux);
+                    total += carsPerSecondAux;
                     totalDetections += numberCars;
                 }
                 totalDetectionsStoredList.push(totalDetectionsStored);
@@ -178,9 +172,7 @@ class traffic_flow_street1 extends Contract {
                     strFlow.data.push(carFlow);
                 }
                 bySection = [];
-                totalDetections = 0;
-                total = 0;
-                totalDetectionsStored = 0;
+                totalDetections = total = totalDetectionsStored = 0;
             }
             
             if(strFlow.data.length > 0){
@@ -216,19 +208,19 @@ class traffic_flow_street1 extends Contract {
     /**
     * Evaluates the current calculation time and reajust the time window for data if necessary.
     * @async
-    * @param {number} timeData - Current time window.
+    * @param {number} timeWindow - Current time window.
     * @param {number} calculateTime - Current calculation time.
     * @param {number} maxCalculateTime - Maximum calculation time allowed.
     * @param {number} minCalculateTime - Minimum calculation time allowed.
     */
-    async evaluateHistory(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
+    async evaluateWindowTime(ctx, timeWindow, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
-            return JSON.parse(parseInt(timeData)*0.75);
+            return JSON.parse(parseInt(timeWindow)*0.75);
         }else if(parseInt(calculateTime) <= parseInt(minCalculateTime)*1.1){
-            return JSON.parse(parseInt(timeData)*1.25);
+            return JSON.parse(parseInt(timeWindow)*1.25);
         }else{
-            return JSON.parse(timeData);
+            return JSON.parse(timeWindow);
         }
     
     }
@@ -236,19 +228,19 @@ class traffic_flow_street1 extends Contract {
     /**
     * Evaluates the current calculation time and reajust the frequency for harvesting data if necessary.
     * @async
-    * @param {number} frequency - Current frequency.
+    * @param {number} harvestFrequency - Current harvest frequency.
     * @param {number} calculateTime - Current calculation time.
     * @param {number} maxCalculateTime - Maximum calculation time allowed.
     * @param {number} minCalculateTime - Minimum calculation time allowed.
     */
-    async evaluateFrequency(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
+    async evaluateHarvestFrequency(ctx, harvestFrequency, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)*0.9){
-            return JSON.parse(parseFloat(frequency)*1.25);
+            return JSON.parse(parseFloat(harvestFrequency)*1.25);
         }else if(parseFloat(calculateTime) <= parseFloat(minCalculateTime)*1.1){
-            return JSON.parse(parseFloat(frequency)*0.75);
+            return JSON.parse(parseFloat(harvestFrequency)*0.75);
         }else{
-            return JSON.parse(frequency);
+            return JSON.parse(harvestFrequency);
         }
     
     }

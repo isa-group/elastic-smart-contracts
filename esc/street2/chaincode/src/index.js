@@ -4,10 +4,19 @@ const { Contract } = require('fabric-contract-api');
 
 class traffic_flow_street2 extends Contract {
 
+    /**
+    * Initialize the chaincode
+    * @async
+    */
     async initLedger(ctx) {
        
     }
 
+    /**
+    * Gets a sensor from the blockchain
+    * @async
+    * @param {number} numberSensor - The id of the sensor to get.
+    */
     async querySensor2(ctx, numberSensor) {
     
         let queryString = `{
@@ -21,6 +30,10 @@ class traffic_flow_street2 extends Contract {
     
     }
 
+    /**
+    * Creates the data storage for this chaincode, which is a sensor.
+    * @async
+    */
     async createSensor2(ctx) {
         
     
@@ -32,6 +45,10 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.putState('SENSOR1', Buffer.from(JSON.stringify(sensor)));
     }
 
+    /**
+    * Gets the calculation storage for this chaincode.
+    * @async
+    */
     async queryStreetFlows(ctx, streetId) {
     
         let queryString = `{
@@ -45,6 +62,10 @@ class traffic_flow_street2 extends Contract {
     
     }
 
+    /**
+    * Creates the calculation storage for this chaincode.
+    * @async
+    */
     async createStreetFlows2(ctx) {
         
     
@@ -56,6 +77,12 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.putState('STREETFLOWS1', Buffer.from(JSON.stringify(streetflows)));
     }
 
+    /**
+    * Submit the new data given to the blockchain.
+    * @async
+    * @param {object} params - An object with all the parameters necessary which are the id of the data storage, the array of data to introduce, 
+    * the current time window for the data and the frequency to harvest data.
+    */
     async updateData2(ctx, params) {
         let parameters = JSON.parse(params.toString())
         let s = await this.querySensor2(ctx, parseInt(parameters.numberSensor));
@@ -80,7 +107,12 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.setEvent('UpdateDataEvent', Buffer.from(JSON.stringify(event)));
     }
 
-
+    /**
+    * Analyses data and submits the result to the blockchain.
+    * @async
+    * @param {object} params - An object with all the parameters necessary which are the calculation storage, the dates from which collect data
+    * to analyse it, the number of sensors in the street, the current time window for the data and the current frequency.
+    */
     async analysis2(ctx, params) {
         let totalBeginHR = process.hrtime();
         let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
@@ -88,17 +120,10 @@ class traffic_flow_street2 extends Contract {
         let parameters = JSON.parse(params.toString())
         let strFlow = JSON.parse(parameters.analysisHolder)[0].Record;
         let frmDates = JSON.parse(parameters.fromDates);
-        let sensors = [];
-        let bySection = [];
-        let totalDetections = 0;
-        let total = 0;
         let numSens = parseInt(parameters.numberSensors);
-        let totalDetectionsStored = 0;
-        let totalDetectionsStoredList = [];
+        let [totalDetections, total, totalDetectionsStored] = [0,0,0];
+        let [sensors, bySection, totalDetectionsStoredList, totalDetectionsEvent, bySectionEvent, totalEvent] = [[],[],[],[],[],[]];
 
-        let totalDetectionsEvent = [];
-        let bySectionEvent = [];
-        let totalEvent = [];
         if(frmDates.length > 0){
 
             for(let j=1; j<=numSens; j++){
@@ -120,8 +145,9 @@ class traffic_flow_street2 extends Contract {
                     for(let i=0; i< detections.length; i++){
                         numberCars +=  parseInt(detections[i].numberCars);
                     }
-                    bySection.push(parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3)));
-                    total += parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
+                    let carsPerSecondAux = parseFloat(((numberCars *1000) /  (fromDate - toDate)).toFixed(3));
+                    bySection.push(carsPerSecondAux);
+                    total += carsPerSecondAux;
                     totalDetections += numberCars;
                 }
                 totalDetectionsStoredList.push(totalDetectionsStored);
@@ -179,31 +205,51 @@ class traffic_flow_street2 extends Contract {
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
     }
 
-
-    async evaluateHistory2(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
+    /**
+    * Evaluates the current calculation time and reajust the time window for data if necessary.
+    * @async
+    * @param {number} timeWindow - Current time window.
+    * @param {number} calculateTime - Current calculation time.
+    * @param {number} maxCalculateTime - Maximum calculation time allowed.
+    * @param {number} minCalculateTime - Minimum calculation time allowed.
+    */
+    async evaluateWindowTime2(ctx, timeWindow, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
-            return JSON.parse(parseInt(timeData)*0.75);
+            return JSON.parse(parseInt(timeWindow)*0.75);
         }else if(parseInt(calculateTime) <= parseInt(minCalculateTime)*1.1){
-            return JSON.parse(parseInt(timeData)*1.25);
+            return JSON.parse(parseInt(timeWindow)*1.25);
         }else{
-            return JSON.parse(timeData);
+            return JSON.parse(timeWindow);
         }
     
     }
 
-    async evaluateFrequency2(ctx, frequency, calculateTime, maxCalculateTime, minCalculateTime) {
+    /**
+    * Evaluates the current calculation time and reajust the frequency for harvesting data if necessary.
+    * @async
+    * @param {number} harvestFrequency - Current frequency.
+    * @param {number} calculateTime - Current calculation time.
+    * @param {number} maxCalculateTime - Maximum calculation time allowed.
+    * @param {number} minCalculateTime - Minimum calculation time allowed.
+    */
+    async evaluateHarvestFrequency2(ctx, harvestFrequency, calculateTime, maxCalculateTime, minCalculateTime) {
         
         if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)*0.9){
-            return JSON.parse(parseFloat(frequency)*1.25);
+            return JSON.parse(parseFloat(harvestFrequency)*1.25);
         }else if(parseFloat(calculateTime) <= parseFloat(minCalculateTime)*1.1){
-            return JSON.parse(parseFloat(frequency)*0.75);
+            return JSON.parse(parseFloat(harvestFrequency)*0.75);
         }else{
-            return JSON.parse(frequency);
+            return JSON.parse(harvestFrequency);
         }
     
     }
         
+    /**
+    * Auxiliary function to query the blockchain.
+    * @async
+    * @param {string} queryString - Query to process.
+    */
     async queryWithQueryString2(ctx, queryString) {
     
         console.log('query String');

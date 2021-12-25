@@ -8,5 +8,5 @@ do
 done
 node ./connection/
 popd
-
+sleep 5
 node ./esc_core/src
