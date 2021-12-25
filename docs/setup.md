@@ -60,7 +60,8 @@ curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.3.1 1.4.9
     
     (bin is already in the .gitignore file but you should be careful not to upload the commented line of init.sh if you commented it)
 
-9. Run the following command for each folder in **elastic-smart-contracts/esc/**, and in **elastic-smart-contracts/esc/*/chaincode**, and **elastic-smart-contracts/esc_core/** and **elastic-smart-contracts/network/connection**:
+9. Run the following command for each folder in in **elastic-smart-contracts/esc/*/chaincode**, and **elastic-smart-contracts/esc_core/** and **elastic-smart-contracts/network/connection**:
+
 ```
 npm install
 ```
@@ -68,4 +69,3 @@ npm install
 ## Troubleshooting
 - Do not run `npm install` in **elastic-smart-contracts/esc/**, in case you already did it, delete the file **package-lock.json**
 - Make sure you have Node 12.18.1 installed in order to avoid problems with older versions.
-
