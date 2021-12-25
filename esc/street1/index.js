@@ -79,7 +79,7 @@ const argv = yargs
  */
 async function intervalHarvester(frequency) {
 
-  if(config.elasticityMode == "timeWindow"){
+  if(config.elasticityMode == "harvestFrequency"){
     ESC.frequencyChanged();
     let interval = await setInterval(() => {
   
@@ -152,7 +152,7 @@ if (argv._.includes('start')) {
     
     
   
-    if(config.elasticityMode == "timeWindow") {
+    if(config.elasticityMode == "harvestFrequency") {
       setTimeout(() => {
         stop = true;
         console.log("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
