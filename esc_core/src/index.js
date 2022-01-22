@@ -95,6 +95,7 @@ async function main(chaincodes,dataStorageContracts,calculationStorageContracts,
             console.log("Storage "+(i+1)+" of " +chaincodes.length + " added")
 
         }
+        process.exit(0)
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         process.exit(1);

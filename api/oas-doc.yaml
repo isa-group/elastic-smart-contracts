@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Accountable Governance
+  description: >-
+    This is an OpenAPI Specification created by oas-wizard
+    (https://github.com/pafmon/oas-wizard)  
+  contact:
+    name: PabloFM
+    email: pablofm@us.es
+    url: 'http://www.isa.us.es'
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+paths:
+  '/api/v1/setUp/{agreement}':
+    post:
+      operationId: setUpAgreement
+      parameters:
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement to set up.
+          schema:
+            type : string
+      responses:
+        '200':
+          description: Agreement Set up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/logs':
+    get:
+      description: Get logs stored
+      operationId: getLogs
+      responses:
+        '200':
+          description: Logs collected
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+components:
+  schemas:
+    errorModel:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    elementsID:
+      type: string

@@ -3,3 +3,9 @@ ESC_network/main/package-lock.json
 bin
 ESC_network/main/test.js
 ESC_network/main/query.js
+.env
+
+*.pyc
+
+# Visual Studio Code
+.vscode
