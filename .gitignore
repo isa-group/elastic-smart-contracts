@@ -1,3 +1,4 @@
+node_modules/
 base-network/ESC_network.tar.gz
 ESC_network/main/package-lock.json
 bin
