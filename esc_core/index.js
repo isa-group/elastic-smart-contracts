@@ -88,32 +88,19 @@ async function harvesterListener() {
 
         if (event.type === 'analysis'){
             config.analysisCommited = true;
-            if(warmUp){
 
                 avgExecTime += event.execDuration/config.frequencyControlCalculate;
                 controlCount++;
 
-                if(avgExecTime > config.minimumTimeAnalysis){
-
-                    warmUp = false;
-                    
-                }else if(controlCount >= config.frequencyControlCalculate){
-                    controlCount = 0;
-                    avgExecTime = 0;
-                }
-
-            }else{
-
                 if(controlCount >= config.frequencyControlCalculate){
-
-                    avgExecTime += event.execDuration/config.frequencyControlCalculate;
-                
+                    console.log("avg: " + avgExecTime);
                     if(config.elasticityMode === "timeWindow"){
+                        
                         
                         contract.evaluateTransaction(config.evaluateWindowTimeContract, config.dataTimeLimit, avgExecTime, config.maximumTimeAnalysis, config.minimumTimeAnalysis).then((res) => {
                             let newTime = JSON.parse(res.toString());
-                            if(newTime < 32){
-                                newTime = 32;
+                            if(newTime < 1){
+                                newTime = 1;
                             }else if (newTime > 65536){
                                 newTime = 65536;
                             }
@@ -142,11 +129,7 @@ async function harvesterListener() {
                     }
                     controlCount = 0;
                     avgExecTime = 0;
-                }else{
-                    controlCount++;
-                    avgExecTime += event.execDuration/config.frequencyControlCalculate;
                 }
-            }
         }         
     });
 
@@ -163,12 +146,12 @@ async function harvesterListener() {
  * @param {object} params - An object with any aditional param besides the default ones for the smart contract to use.
  * @param {object} newData - The new data to introduce in the blockchain or temporarely hold to introduce it later.
  */
-async function harvesterHook(params, newData) {
+function harvesterHook(params, newData) {
     try {
 
         config.data.push(newData);
 
-        if( config.data.length >= 5 && config.analysisCommited){
+        if( config.data.length >= 1 && config.analysisCommited){
             let totalBeginHR = process.hrtime();
             let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
             config.analysisCommited = false;
@@ -179,8 +162,9 @@ async function harvesterHook(params, newData) {
             params.timeData = config.dataTimeLimit;
             params.frequency = config.harvestFrequency;
             
-    
+            config.flag = true
             contract.submitTransaction(config.updateDataContract, JSON.stringify(params)).then(() => {
+                config.flag = false
                 let totalEndHR = process.hrtime()
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                 let totalDuration = (totalEnd - totalBegin) / 1000;
@@ -188,9 +172,6 @@ async function harvesterHook(params, newData) {
                 console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
             });
         }
-
-
-
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
         process.exit(1);
@@ -226,9 +207,8 @@ async function analyser(params) {
         });
 
         let fromDate = Date.now();
-        let count = 0;
 
-        const listener = await contract.addContractListener((event) => {
+        const listener = await contract.addContractListener( (event) => {
     
             event = event.payload.toString();
             event = JSON.parse(event); 
@@ -239,7 +219,7 @@ async function analyser(params) {
     
                 for(let j = 0; j< event.analysisList.length; j++){
     
-                    if(config.maximumTimeAnalysis*1.5 < event.execDuration){
+                    if(config.maximumTimeAnalysis*0.9 < event.execDuration){
                         config.countCalculationsOverMax++;
                     }
     
@@ -255,38 +235,38 @@ async function analyser(params) {
                 console.log(`Analysis event detected, waiting ${config.analysisFrequency} seconds to launch transaction`);
                 if(event.execDuration > 0){
                     config.execTimes.push(event.execDuration);
-                }
-    
-    
-            }else if (event.type === 'updateData'){
-    
-                
-                if(config.calculationDates.length> 0){
-                    console.log("Launching analysis transaction");
-                }
-                params.timeData = event.timeData;
-                params.fromDates = JSON.stringify(config.calculationDates);
-                params.frequency = event.frequency;
-                analysis(params);
-                config.calculationDates = [];
-                count = 0;                        
-                 
+                }                   
          
             }   
            
         });
 
-
-        let intervalCalculate = setInterval(() => {
-            
-            config.calculationDates.push(fromDate);
-            fromDate += config.analysisFrequency*1000;
-        }, config.analysisFrequency*1000);
-
+        async function executeAnalysis () {
+            var check = setInterval (async function(){
+                if(!config.flag){
+                     clearInterval (check);
+                     console.log("Launching analysis transaction");
+                     await analysis(params);
+                } 
+            },100);
+        }
 
         setTimeout(() => {
-            clearInterval(intervalCalculate);
-        }, config.executionTime*1000 + 500);
+            let intervalCalculate = setInterval(async () => {
+                config.calculationDates.push(fromDate);
+                params.timeData = config.dataTimeLimit;
+                params.fromDates = JSON.stringify(config.calculationDates);
+                params.frequency = config.harvestFrequency;
+                await executeAnalysis()
+                config.calculationDates = [];
+                fromDate += config.analysisFrequency*1000;
+            }, config.analysisFrequency*1000);
+
+            setTimeout(() => {
+                clearInterval(intervalCalculate);
+            }, config.executionTime*1000 + 500);
+        }, 5000);
+
 
         setTimeout(() => {
             contract.removeContractListener(listener);
@@ -329,10 +309,7 @@ async function analyser(params) {
  */
 async function analysis(params) {
     try {
-        
-
         const result = await contract.evaluateTransaction(config.queryAnalysisHolderContract, config.analysisHolderId);
-
         params.analysisHolder = result.toString();
         // Submit the specified transaction.
         await contract.submitTransaction(config.analysisContract, JSON.stringify(params));
