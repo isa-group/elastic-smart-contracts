@@ -90,13 +90,8 @@ class analytics_chaincode extends Contract {
         let s = await this.queryData(ctx, parseInt(parameters.dataNumber));
         let data = JSON.parse(s.toString())[0];
         let det = JSON.parse(parameters.data);
-        let time = Date.now();
-        data.Record.responses = data.Record.responses.filter((i) => {
-            return i.dataCollectedDateTime >= (time - parameters.timeData*1000 - 10000);
-        });
-        for(let i = 0; i< det.length; i++){
-            data.Record.responses.push(det[i]);
-        }
+
+        data.Record.responses = [det[det.length-1]];
         
 
         await ctx.stub.putState(data.Key, Buffer.from(JSON.stringify(data.Record)));
@@ -118,6 +113,7 @@ class analytics_chaincode extends Contract {
     * to analyse it, the data number, the current time window for the data and the current frequency.
     */
      async analysis(ctx, params) {
+        const vm = require('vm');
 
         let totalBeginHR = process.hrtime();
         let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
@@ -136,6 +132,7 @@ class analytics_chaincode extends Contract {
         var aboveTreshold = [];
         var wrongResponsesPercentage = [];
         let totalWrongResponses = 0;
+        let guaranteesValues = [];
         if(frmDates.length > 0){
 
             for(let j=1; j<=numData; j++){
@@ -150,27 +147,80 @@ class analytics_chaincode extends Contract {
                 for(let l=0;l<data.length; l++){
                     totalNumbersStored += data[l].Record.responses.length;
 
-                    var responses = data[l].Record.responses.filter((i) => {
-                        return parseInt(fromDate) >= i.dataCollectedDateTime && i.dataCollectedDateTime >= parseInt(toDate);
-                    });
+                    var agreement = data[l].Record.responses[0].agreement
+
+                    var metricValues = data[l].Record.responses[0].responses
 
                     let numberResponses = 0;
-                    for(let i=0; i< responses.length; i++){
-                        numberResponses += responses[i].numberResponses
-                        for(let j=0; j< responses[i].responses.length;j++){
-                            if(responses[i].responses[j].code != 200){
-                                totalWrongResponses +=  parseInt(responses[i].responses[j].number);
+
+                    function calculatePenalty(guarantee, timedScope, metricsValues, slo, penalties){
+                        const guaranteeValue = {};
+                        const ofElement = guarantee.of[0]
+                        guaranteeValue.scope = timedScope.scope;
+                        guaranteeValue.period = timedScope.period;
+                        guaranteeValue.guarantee = guarantee.id;
+                        guaranteeValue.evidences = [];
+                        guaranteeValue.metrics = {};
+                        const values = [];
+                        var penalties = {};// Temporal fix
+                    
+                        for (const metricId in ofElement.with) {
+                            let value = 0;
+                            if (metricsValues[metricId]) {
+                                value = metricsValues[metricId].value;
                             }
+                            if (value === 'NaN' || value === '') {
+                                console.log('Unexpected value (' + value + ') for metric ' + metricId + ' ');
+                                return;
+                            }
+                            vm.runInThisContext(metricId + ' = ' + value);
+                            guaranteeValue.metrics[metricId] = value;
+                            if (metricsValues[metricId] && metricsValues[metricId].evidences) {
+                            guaranteeValue.evidences = guaranteeValue.evidences.concat(metricsValues[metricId].evidences);
+                            } else {
+                                console.log('Metric without evidences: ' + JSON.stringify(metricsValues[metricId], null, 2));
+                            }
+                    
+                            const val = {};
+                            val[metricId] = value;
+                            values.push(val);
                         }
+                    
+                        const fulfilled = Boolean(vm.runInThisContext(slo));
+                        guaranteeValue.value = fulfilled;
+                    
+                        if (!fulfilled && penalties.length > 0) {
+                            guaranteeValue.penalties = {};
+                            penalties.forEach(function (penalty) {
+                            const penaltyVar = Object.keys(penalty.over)[0];
+                            const penaltyFulfilled = penalty.of.filter(function (compensationOf) {
+                                return vm.runInThisContext(compensationOf.condition);
+                            });
+                            if (penaltyFulfilled.length > 0) {
+                                guaranteeValue.penalties[penaltyVar] = parseFloat(vm.runInThisContext(penaltyFulfilled[0].value));
+                            } else {
+                                guaranteeValue.penalties[penaltyVar] = 0;
+                                console.log('SLO not fulfilled and no penalty found: ');
+                                console.log('\t- penalty: ', penalty.of);
+                                console.log('\t- metric value: ', values);
+                            }
+                            });
+                        }
+                        return guaranteeValue;
                     }
-                    totalWrongResponses = (totalWrongResponses/numberResponses) * 100;
+
+                    agreement.terms.guarantees.map((guarantee) => {
+                        if(guarantee.of[0].reliable){
+                            //cambiar period al último de la garantía
+                            const timeScope = {"scope": guarantee.of[0].scope, "period": { from: new Date("2021-09-15T23:00:00.000Z").toISOString(), to: new Date("2021-10-15T22:59:59.999Z").toISOString() }}
+                            let guaranteeValue = calculatePenalty(guarantee,timeScope,metricValues,guarantee.of[0].objective,guarantee.of[0].penalties)
+                            guaranteesValues.push(guaranteeValue);
+                        }
+                    })
                     bySection.push(parseFloat(((numberResponses *1000) /  (fromDate - toDate)).toFixed(3)));
                     total += parseFloat(((numberResponses *1000) /  (fromDate - toDate)).toFixed(3));
                     totalNumbers += numberResponses;
                 }
-                aboveTreshold.push(totalWrongResponses > 50 ? true : false)
-                wrongResponsesPercentage.push(totalWrongResponses)
-                totalWrongResponses = 0;
                 totalNumbersStoredList.push(totalNumbersStored);
                 totalNumbersEvent.push(totalNumbers);
                 bySection = [];
@@ -188,7 +238,7 @@ class analytics_chaincode extends Contract {
             totalDuration = 0;
         }
 
-        let info = [aboveTreshold,wrongResponsesPercentage];
+        let info = [guaranteesValues];
 
         let event = {
             execDuration: totalDuration,
@@ -201,6 +251,13 @@ class analytics_chaincode extends Contract {
             info: info
 
         };
+
+        let s = await this.queryDataCalculation(ctx, 1);
+        let data2 = JSON.parse(s.toString())[0];
+        data2.Record.responses = [guaranteesValues];
+        
+
+        await ctx.stub.putState(data2.Key, Buffer.from(JSON.stringify(data2.Record)));
         await ctx.stub.setEvent('FlowEvent', Buffer.from(JSON.stringify(event)));
       }
 

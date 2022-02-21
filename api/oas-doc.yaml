@@ -13,6 +13,19 @@ info:
     name: MIT
     url: 'http://opensource.org/licenses/MIT'
 paths:
+  '/api/v1/initialize':
+    post:
+      description: Initialize network
+      operationId: initialize
+      responses:
+        '200':
+          description: Network initialized
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/setUp/{agreement}':
     post:
       operationId: setUpAgreement
@@ -23,6 +36,12 @@ paths:
           description: Agreement to set up.
           schema:
             type : string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/queries'
       responses:
         '200':
           description: Agreement Set up
@@ -32,13 +51,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/logs':
+  '/api/v1/guarantees/{guarantee}':
     get:
-      description: Get logs stored
-      operationId: getLogs
+      description: Get guarantee state
+      operationId: guarantee
+      parameters:
+        - name: guarantee
+          in: path
+          required: true
+          description: Guarantee to get.
+          schema:
+            type : string
       responses:
         '200':
-          description: Logs collected
+          description: Guarantee collected
         default:
           description: unexpected error
           content:
@@ -60,3 +86,10 @@ components:
           type: string
     elementsID:
       type: string
+    queries:
+      type: object
+      properties:
+        guaranteeID:
+          type: string
+        collector:
+          type: string

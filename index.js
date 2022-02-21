@@ -1,49 +1,28 @@
 'use strict';
 
-var fs = require('fs'),
-    http = require('http'),
-    path = require('path');
+const governify = require('governify-commons');
+const logger = governify.getLogger().tag('index');
 
-var express = require("express");
-var cors = require('cors')
+const server = require('./server');
 
-var app = express();
-var bodyParser = require('body-parser');
-app.use(cors())
-app.use(bodyParser.json({
-  strict: false
-}));
-var oasTools = require('oas-tools');
-var jsyaml = require('js-yaml');
-var serverPort = 8080;
+const env = process.env.NODE_ENV ? process.env.NODE_ENV : 'production';
 
-var spec = fs.readFileSync(path.join(__dirname, '/api/oas-doc.yaml'), 'utf8');
-var oasDoc = jsyaml.safeLoad(spec);
+governify.init().then((commonsMiddleware) => {
+  server.deploy(env, commonsMiddleware).catch(logger.error);
+});
 
-var options_object = {
-  controllers: path.join(__dirname, './controllers'),
-  loglevel: 'info',
-  strict: false,
-  router: true,
-  validator: true
+// quit on ctrl-c when running docker in terminal
+process.on('SIGINT', function onSigint () {
+  logger.info('Got SIGINT (aka ctrl-c in docker). Graceful shutdown ', new Date().toISOString());
+  shutdown();
+});
+
+// quit properly on docker stop
+process.on('SIGTERM', function onSigterm () {
+  logger.info('Got SIGTERM (docker container stop). Graceful shutdown ', new Date().toISOString());
+  shutdown();
+});
+
+const shutdown = () => {
+  server.undeploy();
 };
-
-oasTools.configure(options_object);
-
-oasTools.initialize(oasDoc, app, function() {
-  http.createServer(app).listen(serverPort, function() {
-    console.log("App running at http://localhost:" + serverPort);
-    console.log("________________________________________________________________");
-    if (options_object.docs !== false) {
-      console.log('API docs (Swagger UI) available on http://localhost:' + serverPort + '/docs');
-      console.log("________________________________________________________________");
-    }
-  });
-});
-
-app.get('/info', function(req, res) {
-  res.send({
-    info: "This API was generated using oas-generator!",
-    name: oasDoc.info.title
-  });
-});

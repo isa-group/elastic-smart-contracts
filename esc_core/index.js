@@ -216,7 +216,6 @@ async function analyser(params) {
             event = JSON.parse(event); 
     
             if (event.type === 'analysis'){
-                
     
                 config.dataTimeLimit = event.timeData;
     
