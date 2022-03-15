@@ -5,21 +5,23 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     const { Gateway, Wallets } = require('fabric-network');
     const path = require('path');
     const fs = require('fs');
+    const governify = require('governify-commons');
+    const logger = governify.getLogger().tag('index');
 
     const ccpPath = path.resolve(__dirname,   '..', 'network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-    console.log(`ccpPath path: ${ccpPath}`)
+    logger.info(`ccpPath path: ${ccpPath}`)
     // Create a new file system based wallet for managing identities.
     const walletPath = path.resolve(__dirname, '..', 'esc_core', 'wallet');
-    console.log(walletPath)
+    logger.info(walletPath)
     const wallet = await Wallets.newFileSystemWallet(walletPath);
-    console.log(`Wallet path: ${walletPath}`);
+    logger.info(`Wallet path: ${walletPath}`);
 
     // Check to see if we've already enrolled the user.
     const identity = await wallet.get('admin');
     if (!identity) {
-        console.log('An identity for the user "admin" does not exist in the wallet');
-        console.log('Run the registerUser.js application before retrying');
+        logger.error('An identity for the user "admin" does not exist in the wallet');
+        logger.error('Run the registerUser.js application before retrying');
         return;
     }
 
@@ -37,13 +39,10 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     var result = await contract.evaluateTransaction('queryDataCalculation',1);
     const responses = JSON.parse(result.toString())
     const guaranteesStates = responses[0].Record.responses[0]
-    let guaranteeState = guaranteesStates.find( (g) => {
-      return g.guarantee.toLowerCase() == req.guarantee.value.toLowerCase()
-    })
 
     res.send({
       code: 200,
-      guaranteeState: guaranteeState,
+      guaranteeState: guaranteesStates[req.guarantee.value],
       message: 'Guarantee states returned'
     });
   } catch {

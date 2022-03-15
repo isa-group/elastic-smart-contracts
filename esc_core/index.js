@@ -10,6 +10,8 @@ const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 const csv = require('csvtojson');
+const governify = require('governify-commons');
+const logger = governify.getLogger().tag('index');
 
 var gateway = "";
 var contract = "";
@@ -95,7 +97,6 @@ async function harvesterListener() {
                 controlCount++;
 
                 if(controlCount >= config.frequencyControlCalculate){
-                    console.log("avg: " + avgExecTime);
                     if(config.elasticityMode === "timeWindow"){
                         
                         
@@ -122,7 +123,7 @@ async function harvesterListener() {
                             }
                             
                             if(newTime > 0 && newTime != config.harvestFrequency){
-                                console.log("New Harvest Frequency: " + newTime);
+                                logger.info("New Harvest Frequency: " + newTime);
                                 config.changeFrequency = {change: true, newFrequency: newTime}
                                 config.harvestFrequency = newTime;
 
@@ -171,7 +172,7 @@ function harvesterHook(params, newData) {
                 let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
                 let totalDuration = (totalEnd - totalBegin) / 1000;
 
-                console.log('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
+                logger.info('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
             });
         }
     } catch (error) {
@@ -225,7 +226,7 @@ async function analyser(params) {
                         config.countCalculationsOverMax++;
                     }
     
-                    console.log('An analysis has beeen executed with a total number of '+ event.analysisList[j] + ' data objects and a duration of ' + event.execDuration + ' ms');
+                    logger.info('An analysis has been executed with a duration of ' + event.execDuration + ' ms');
                     csvBody += `${event.analysisList[j]},${event.execDuration},${config.analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config.minimumTimeAnalysis},${config.maximumTimeAnalysis}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody += `,${event.info[i][j]}`
@@ -234,7 +235,6 @@ async function analyser(params) {
                     csvBody += `\n`
                 }
     
-                console.log(`Analysis event detected, waiting ${config.analysisFrequency} seconds to launch transaction`);
                 if(event.execDuration > 0){
                     config.execTimes.push(event.execDuration);
                 }                   
@@ -247,7 +247,7 @@ async function analyser(params) {
             var check = setInterval (async function(){
                 if(!config.flag){
                      clearInterval (check);
-                     console.log("Launching analysis transaction");
+                     logger.info("Launching analysis transaction");
                      await analysis(params);
                 } 
             },100);

@@ -129,10 +129,7 @@ class analytics_chaincode extends Contract {
         let totalNumbersStoredList = [];
 
         let totalNumbersEvent = [];
-        var aboveTreshold = [];
-        var wrongResponsesPercentage = [];
-        let totalWrongResponses = 0;
-        let guaranteesValues = [];
+        let guaranteesValues = {};
         if(frmDates.length > 0){
 
             for(let j=1; j<=numData; j++){
@@ -150,6 +147,8 @@ class analytics_chaincode extends Contract {
                     var agreement = data[l].Record.responses[0].agreement
 
                     var metricValues = data[l].Record.responses[0].responses
+
+                    var timedScopes = data[l].Record.responses[0].timedScopes
 
                     let numberResponses = 0;
 
@@ -211,12 +210,16 @@ class analytics_chaincode extends Contract {
 
                     agreement.terms.guarantees.map((guarantee) => {
                         if(guarantee.of[0].reliable){
-                            //cambiar period al último de la garantía
-                            const timeScope = {"scope": guarantee.of[0].scope, "period": { from: new Date("2021-09-15T23:00:00.000Z").toISOString(), to: new Date("2021-10-15T22:59:59.999Z").toISOString() }}
-                            let guaranteeValue = calculatePenalty(guarantee,timeScope,metricValues,guarantee.of[0].objective,guarantee.of[0].penalties)
-                            guaranteesValues.push(guaranteeValue);
+                            let guaranteeValues = [];
+                          for (let index = 0; index < timedScopes.length; index++) {
+                            let guaranteeValue = calculatePenalty(guarantee,timedScopes[index],metricValues[index],guarantee.of[0].objective,guarantee.of[0].penalties)
+                            if (guaranteeValue) {
+                                guaranteeValues.push(guaranteeValue);
+                            }
+                          }
+                          guaranteesValues[guarantee.id] = guaranteeValues;
                         }
-                    })
+                      })
                     bySection.push(parseFloat(((numberResponses *1000) /  (fromDate - toDate)).toFixed(3)));
                     total += parseFloat(((numberResponses *1000) /  (fromDate - toDate)).toFixed(3));
                     totalNumbers += numberResponses;
@@ -238,7 +241,7 @@ class analytics_chaincode extends Contract {
             totalDuration = 0;
         }
 
-        let info = [guaranteesValues];
+        let info = [];
 
         let event = {
             execDuration: totalDuration,
