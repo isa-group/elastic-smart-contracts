@@ -5,14 +5,13 @@ const JSONStream = require('JSONStream');
 const governify = require('governify-commons');
 const logger = governify.getLogger().tag('index');
 const diff = require('deep-diff');
-const vm = require('vm');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./esc/governify/results",
+  resultsPath: "./esc/governifynexo_cc_ans/results",
   identityName: "admin",
   channelName: "escchannel",
-  chaincodeName: "governify",
+  chaincodeName: "governifynexo_cc_ans",
   csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 
@@ -27,14 +26,14 @@ let config = {
   elasticityMode: "harvestFrequency",
   experimentName: "test",
     
-  updateDataContract: "updateData",
-  evaluateWindowTimeContract: "evaluateHistory",
-  evaluateHarvestFrequencyContract: "evaluateFrequency",
-  queryAnalysisHolderContract: "queryDataCalculation",
+  updateDataContract: "updateData2",
+  evaluateWindowTimeContract: "evaluateHistory2",
+  evaluateHarvestFrequencyContract: "evaluateFrequency2",
+  queryAnalysisHolderContract: "queryDataCalculation2",
   analysisHolderId: 2,
-  analysisContract: "analysis",
-  dataStorageContract: "createData",
-  calculationStorageContract: "createDataCalculation",
+  analysisContract: "analysis2",
+  dataStorageContract: "createData2",
+  calculationStorageContract: "createDataCalculation2",
 
 
 

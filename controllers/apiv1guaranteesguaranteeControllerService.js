@@ -29,14 +29,22 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     // Create a new gateway for connecting to our peer node.
     const gateway = new Gateway();
     await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
-
     // Get the network (channel) our contract is deployed to.
     const network = await gateway.getNetwork('escchannel');
-    let contract = network.getContract('governify');
+    let aux = ""
+    let aux2 = ""
+    if (req.guarantee.value === "Tiempo_total_peticion" || req.guarantee.value === "Iteraciones_cierre_temporal") {
+      aux = "governifyoti_gc_ans"
+      aux2 = "queryDataCalculation"
+    }else{
+      aux = "governifynexo_cc_ans"
+      aux2 = "queryDataCalculation2"
+    }
+    let contract = network.getContract(aux);
     //Hacer evaluateTransaction en vez del submit para hacer queries, el submit es mas para escribir
     // var result = await contract.evaluateTransaction('queryData',1);
     // console.log(result.toString())
-    var result = await contract.evaluateTransaction('queryDataCalculation',1);
+    var result = await contract.evaluateTransaction(aux2,1);
     const responses = JSON.parse(result.toString())
     const guaranteesStates = responses[0].Record.responses[0]
 

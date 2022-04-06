@@ -3,7 +3,7 @@
 module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
   const { exec } = require('child_process');
   require('dotenv').config()
-  const file = "governify/"
+  const file = "governify" + req.undefined.value.agreement.id + "/"
   const command = "echo " + process.env.SUDOPASSWORD + " | sudo -S "
   const esc = require("../esc/" + file + 'index.js')
   
@@ -27,18 +27,17 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
   const agreement = dt.undefined.value.agreement
   const metricQueries = dt.undefined.value.metricQueries;
 
-
-  os.execCommand(command + "./setup.sh").then(result=> {
-    res.send({
-      code: 202,
-      message: 'Agreement set up'
-    });
+  // os.execCommand(command + "./setup.sh").then(result=> {
+  //   res.send({
+  //     code: 202,
+  //     message: 'Agreement set up'
+  //   });
     esc.start(metricQueries,agreement)
-  }).catch(err=> {
-    res.send({
-      code: 500,
-      message: 'Server Error'
-    });
-  })
+  // }).catch(err=> {
+  //   res.send({
+  //     code: 500,
+  //     message: 'Server Error'
+  //   });
+  // })
 
 };
