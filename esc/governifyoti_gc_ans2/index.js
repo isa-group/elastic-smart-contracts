@@ -8,16 +8,16 @@ const diff = require('deep-diff');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./esc/governifynexo_cc_ans/results",
+  resultsPath: "./esc/governifyoti_gc_ans2/results",
   identityName: "admin",
   channelName: "escchannel",
-  chaincodeName: "governifynexo_cc_ans",
+  chaincodeName: "governifyoti_gc_ans2",
   csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 
 
   executionTime: 600,
-  analysisFrequency: 10,
+  analysisFrequency: 5,
   harvestFrequency: 3,
   dataTimeLimit: 60,
   frequencyControlCalculate: 1,
@@ -26,14 +26,14 @@ let config = {
   elasticityMode: "harvestFrequency",
   experimentName: "test",
     
-  updateDataContract: "updateData2",
-  evaluateWindowTimeContract: "evaluateHistory2",
-  evaluateHarvestFrequencyContract: "evaluateFrequency2",
-  queryAnalysisHolderContract: "queryDataCalculation2",
+  updateDataContract: "updateData3",
+  evaluateWindowTimeContract: "evaluateHistory3",
+  evaluateHarvestFrequencyContract: "evaluateFrequency3",
+  queryAnalysisHolderContract: "queryDataCalculation3",
   analysisHolderId: 2,
-  analysisContract: "analysis2",
-  dataStorageContract: "createData2",
-  calculationStorageContract: "createDataCalculation2",
+  analysisContract: "analysis3",
+  dataStorageContract: "createData3",
+  calculationStorageContract: "createDataCalculation3",
 
 
 
@@ -175,6 +175,7 @@ async function hookData(metricQueries, agreement){
       agreement: agreement
     };
 
+
     return newData;
   })
 }
@@ -264,7 +265,7 @@ const argv = yargs
 async function intervalHarvester(frequency, metricQueries, agreement) {
 
   if(config.elasticityMode == "harvestFrequency"){
-    ESC.frequencyChanged(config.chaincodeName);
+    ESC.frequencyChanged(config.chaincodeName,config.chaincodeName);
     interval = await setInterval(() => {
   
       ESC.getNewFrequency(config.chaincodeName).then(async (res) =>{

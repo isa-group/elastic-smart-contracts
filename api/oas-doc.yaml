@@ -51,6 +51,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  '/api/v1/stop/{agreement}':
+    delete:
+      operationId: stopAgreement
+      parameters:
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement to set up.
+          schema:
+            type : string
+      responses:
+        '200':
+          description: Agreement Set up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/guarantees/{guarantee}':
     get:
       description: Get guarantee state

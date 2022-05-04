@@ -53,7 +53,8 @@ module.exports.guarantee = async function guarantee(req, res, next) {
       guaranteeState: guaranteesStates[req.guarantee.value],
       message: 'Guarantee states returned'
     });
-  } catch {
+  } catch (err) {
+    console.log(err)
     res.send({
       code: 500,
       message: 'Server Error'

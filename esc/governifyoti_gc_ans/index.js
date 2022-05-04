@@ -16,15 +16,15 @@ let config = {
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 
 
-  executionTime: 1000,
-  analysisFrequency: 15,
-  harvestFrequency: 10,
+  executionTime: 100,
+  analysisFrequency: 5,
+  harvestFrequency: 3,
   dataTimeLimit: 60,
   frequencyControlCalculate: 1,
   maximumTimeAnalysis: 15,
-  minimumTimeAnalysis: 11,
+  minimumTimeAnalysis: 10,
   elasticityMode: "harvestFrequency",
-  experimentName: "test",
+  experimentName: "experiment",
     
   updateDataContract: "updateData",
   evaluateWindowTimeContract: "evaluateHistory",
@@ -48,6 +48,8 @@ let analyserParams = {
 }
 
 var stop = false;
+var interval = "";
+var timeout = "";
 
 
 async function hookData(metricQueries, agreement){
@@ -173,6 +175,7 @@ async function hookData(metricQueries, agreement){
       agreement: agreement
     };
 
+
     return newData;
   })
 }
@@ -262,10 +265,10 @@ const argv = yargs
 async function intervalHarvester(frequency, metricQueries, agreement) {
 
   if(config.elasticityMode == "harvestFrequency"){
-    ESC.frequencyChanged();
-    let interval = await setInterval(() => {
+    ESC.frequencyChanged(config.chaincodeName,config.chaincodeName);
+    interval = setInterval(() => {
   
-      ESC.getNewFrequency().then(async (res) =>{
+      ESC.getNewFrequency(config.chaincodeName).then(async (res) =>{
   
         if(res.change){
   
@@ -280,22 +283,22 @@ async function intervalHarvester(frequency, metricQueries, agreement) {
   
           let newData = await hookData(metricQueries, agreement);
   
-          ESC.harvesterHook(harvesterHookParams, newData);
+          ESC.harvesterHook(harvesterHookParams, newData,config.chaincodeName);
 
         }
       })
       
     }, frequency*1000);
   }else{
-    let interval = await setInterval(async () => {
+    interval = await setInterval(async () => {
     
       let newData = await hookData(metricQueries, agreement);
   
-      ESC.harvesterHook(harvesterHookParams, newData);
+      ESC.harvesterHook(harvesterHookParams, newData,config.chaincodeName);
   
     }, frequency*1000);
   
-    setTimeout(() => {
+    timeout = setTimeout(() => {
       clearInterval(interval);
       logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
     }, config.executionTime*1000 + 100);
@@ -305,20 +308,20 @@ async function intervalHarvester(frequency, metricQueries, agreement) {
 
 function start(metricQueries, agreement){
 
-  ESC.configurate(config)
+  ESC.configurate(config,config.chaincodeName)
 
   stop = false;
   
-  ESC.connect().then(() =>{
+  ESC.connect(config.chaincodeName).then(() =>{
   
-    ESC.analyser(analyserParams);
+    ESC.analyser(analyserParams,config.chaincodeName);
   
-    ESC.harvesterListener();
+    ESC.harvesterListener(config.chaincodeName);
   
     intervalHarvester(config.harvestFrequency, metricQueries, agreement);
 
     if(config.elasticityMode == "harvestFrequency") {
-      setTimeout(() => {
+      timeout = setTimeout(() => {
         stop = true;
         logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
       }, config.executionTime*1000 + 100);
@@ -336,3 +339,7 @@ module.exports.chaincodeName = function(){
   console.log(config.chaincodeName)
 };
 module.exports.start = start;
+module.exports.stop = stop;
+module.exports.getIntervals= function() {
+  return [interval,timeout];
+};
