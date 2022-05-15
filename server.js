@@ -10,9 +10,12 @@ return new Promise((resolve, reject) => {
     var express = require('express');
     var app = express();
     var bodyParser = require('body-parser');
+    var cors = require('cors');
+
     app.use(bodyParser.json({
         strict: false
     }));
+    app.use(cors());
     app.use(commonsMiddleware);
     var oasTools = require('oas-tools');
     var jsyaml = require('js-yaml');
@@ -32,7 +35,7 @@ return new Promise((resolve, reject) => {
     oasTools.configure(optionsObject);
 
     oasTools.initialize(oasDoc, app, function () {
-        http.createServer(app).listen(serverPort, function () {
+        http.createServer(app).listen(serverPort, "0.0.0.0", function () {
         if (env !== 'test') {
             logger.info('App running at http://localhost:' + serverPort);
             logger.info('________________________________________________________________');

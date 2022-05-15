@@ -7,13 +7,8 @@ set -e
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 
-
-# clean out any old identites in the wallets
-rm -rf esc_core/wallet/*
-
 # launch network; create channel and join peer to channel
 pushd ./network
-./init.sh down
 ./init.sh up createChannel -ca -s couchdb
 
 popd

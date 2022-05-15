@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Accountable Governance
+  title: Accountable Registry
   description: >-
     This is an OpenAPI Specification created by oas-wizard
     (https://github.com/pafmon/oas-wizard)  
@@ -13,13 +13,26 @@ info:
     name: MIT
     url: 'http://opensource.org/licenses/MIT'
 paths:
-  '/api/v1/initialize':
+  '/api/v1/startup':
     post:
-      description: Initialize network
-      operationId: initialize
+      description: Startup network
+      operationId: startup
       responses:
         '200':
-          description: Network initialized
+          description: Network started up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/shutdown':
+    post:
+      description: Shut down network
+      operationId: shutdown
+      responses:
+        '200':
+          description: Network shut down
         default:
           description: unexpected error
           content:
@@ -70,7 +83,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/guarantees/{guarantee}':
+  '/api/v1/guarantees/{agreement}/{guarantee}':
     get:
       description: Get guarantee state
       operationId: guarantee
@@ -81,6 +94,12 @@ paths:
           description: Guarantee to get.
           schema:
             type : string
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement's guarantee
+          schema:
+            type: string
       responses:
         '200':
           description: Guarantee collected
