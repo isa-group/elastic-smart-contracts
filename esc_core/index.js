@@ -109,7 +109,6 @@ async function harvesterListener(esc) {
                 try{
                 if(config[esc].elasticityMode === "timeWindow"){
                     
-                    
                     contract[esc].evaluateTransaction(config[esc].evaluateWindowTimeContract, config[esc].dataTimeLimit, avgExecTime, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
                         let newTime = JSON.parse(res.toString());
                         if(newTime < 1){
@@ -118,7 +117,7 @@ async function harvesterListener(esc) {
                             newTime = 65536;
                         }
 
-                        if(newTime > 0 && newTime != config[esc].dataTimeLimit){
+                        if(newTime > config[esc].harvestFrequency && newTime != config[esc].dataTimeLimit){
                             config[esc].dataTimeLimit = newTime;
                             console.log("New Time Data: " + config[esc].dataTimeLimit)
                         }
@@ -126,14 +125,13 @@ async function harvesterListener(esc) {
                 }else if(config[esc].elasticityMode === "harvestFrequency"){
                     contract[esc].evaluateTransaction(config[esc].evaluateHarvestFrequencyContract, config[esc].harvestFrequency, avgExecTime, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
                         let newTime = JSON.parse(res.toString());
-                        // console.log(ESCnumber.counter)
                         if(newTime < 5){
                             newTime = 5;
                         }else if (newTime > 60){
                             newTime = 60;
                         }
                         
-                        if(newTime > 0 && newTime != config[esc].harvestFrequency){
+                        if(newTime > 0 && newTime >= config[esc].analysisFrequency && newTime != config[esc].harvestFrequency){
                             logger.info("New Harvest Frequency: " + newTime);
                             config[esc].changeFrequency = {change: true, newFrequency: newTime}
                             config[esc].harvestFrequency = newTime;
@@ -244,6 +242,7 @@ async function analyser(params,esc) {
                     }
     
                     logger.info('An analysis has been executed with a duration of ' + event.execDuration + ' ms');
+                    console.log(event.totalDataStoredList[j]);
                     csvBody[esc] += `${event.analysisList[j] + 1},${event.execDuration},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
@@ -271,19 +270,10 @@ async function analyser(params,esc) {
                 params.frequency = config[esc].harvestFrequency;
                 logger.info("Launching analysis transaction");
                 await analysis(params,esc);
-                cntr++;
                 config[esc].calculationDates = [];
                 fromDate += config[esc].analysisFrequency*1000;
-                console.log(config[esc].analysisFrequency)
-                if(cntr == 10){
-                    cntr = 0;
-                    config[esc].analysisFrequency = config[esc].analysisFrequency-1;
-                    if(config[esc].analysisFrequency < 2){
-                        config[esc].analysisFrequency = 2;
-                    }
-                    clearInterval(intervalCalculate[esc]);
-                    intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
-                }
+                clearInterval(intervalCalculate[esc]);
+                intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
             }
 
             setTimeout(() => {

@@ -8,7 +8,7 @@ const diff = require('deep-diff');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./experiments_results/8/governifyoti_gc_ansX/",
+  resultsPath: "./experiments_results/18/governifyoti_gc_ansX/",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "governifyoti_gc_ansX",
@@ -18,12 +18,12 @@ let config = {
 
   executionTime: 5000,
   analysisFrequency: 10,
-  harvestFrequency: 3,
+  harvestFrequency: 11,
   dataTimeLimit: 60,
   frequencyControlCalculate: 1,
-  maximumTimeAnalysis: 8,
-  minimumTimeAnalysis: 7,
-  elasticityMode: "harvestFrequency",
+  maximumTimeAnalysis: 18,
+  minimumTimeAnalysis: 12,
+  elasticityMode: "timeWindow",
   experimentName: "test",
     
   updateDataContract: "updateData",
@@ -312,11 +312,16 @@ function start(metricQueries, agreement){
 
   stop = false;
   
-  ESC.connect(config.chaincodeName).then(() =>{
+  ESC.connect(config.chaincodeName).then(async () =>{
   
     ESC.analyser(analyserParams,config.chaincodeName);
   
     ESC.harvesterListener(config.chaincodeName);
+
+    //First time we collect data to introduce it in the blockchain before first analysis is done
+    let dataCollected = await hookData(metricQueries, agreement);
+  
+    ESC.harvesterHook(harvesterHookParams, dataCollected,config.chaincodeName);
   
     intervalHarvester(config.harvestFrequency, metricQueries, agreement);
 

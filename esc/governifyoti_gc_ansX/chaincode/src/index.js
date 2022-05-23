@@ -90,8 +90,15 @@ class analytics_chaincode extends Contract {
         let s = await this.queryData(ctx, parseInt(parameters.dataNumber));
         let data = JSON.parse(s.toString())[0];
         let det = JSON.parse(parameters.data);
+        let time = Date.now();
+        data.Record.responses = data.Record.responses.filter((i) => {
+            return i.dataCollectedDateTime >= (time - parameters.timeData*1000 - 10000);
+        });
+        for(let i = 0; i < det.length; i++){
+            data.Record.responses.push(det[i]);
+        }
 
-        data.Record.responses = [det[det.length-1]];
+        // data.Record.responses = [det[det.length-1]];
         
 
         await ctx.stub.putState(data.Key, Buffer.from(JSON.stringify(data.Record)));
@@ -146,7 +153,11 @@ class analytics_chaincode extends Contract {
 
                     var agreement = data[l].Record.responses[0].agreement
 
-                    var metricValues = data[l].Record.responses[0].responses
+
+                    var metricValues = [];
+                    for(let m=0; m<data[l].Record.responses.length; m++){
+                        metricValues.push(data[l].Record.responses[m].responses);
+                    }
 
                     var timedScopes = data[l].Record.responses[0].timedScopes
 
@@ -274,10 +285,10 @@ class analytics_chaincode extends Contract {
     */
      async evaluateHistory(ctx, timeData, calculateTime, maxCalculateTime, minCalculateTime) {
         
-        if(parseInt(calculateTime) >= parseInt(maxCalculateTime)*0.9){
-            return JSON.parse(parseInt(timeData)*0.75);
-        }else if(parseInt(calculateTime) <= parseInt(minCalculateTime)*1.1){
-            return JSON.parse(parseInt(timeData)*1.25);
+        if(parseFloat(calculateTime) >= parseFloat(maxCalculateTime)){
+            return JSON.parse(parseFloat(timeData)*0.75);
+        }else if(parseFloat(calculateTime) <= parseFloat(minCalculateTime)){
+            return JSON.parse(parseFloat(timeData)*1.25);
         }else{
             return JSON.parse(timeData);
         }

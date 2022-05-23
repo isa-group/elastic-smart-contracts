@@ -27,7 +27,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
         if (err) logger.error(err);
         fs.writeFileSync(path, csvBody,'utf8');
       });
-      //fs.rm("esc/" + file, { recursive: true, force: true }, (err) => { if(err){console.log(err)}});
+      fs.rm("esc/" + file, { recursive: true, force: true }, (err) => { if(err){console.log(err)}});
       res.send({
         code:200,
         message: 'Agreement stopped'

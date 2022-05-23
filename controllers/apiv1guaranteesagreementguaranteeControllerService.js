@@ -35,6 +35,8 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     let aux2 = ""
     if (agreement === "oti_gc_ans") {
       aux2 = "queryDataCalculation"
+    }else if(agreement === "oti_gc_ans1"){
+      aux2 = "queryDataCalculation1"
     }else if(agreement === "oti_gc_ans2"){
       aux2 = "queryDataCalculation3"
     }else if(agreement === "oti_gc_ans3"){
