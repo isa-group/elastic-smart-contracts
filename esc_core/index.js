@@ -21,6 +21,7 @@ var config = {}
 var intervalCalculate = {}
 var csvTimeout = {}
 var csvBody = {};
+var timesCsvBody = { data: "MIN,MAX,MEAN,STDEV,NUMBER_ESC_RUNNING\n" };
 
 var ESCnumber = { counter: 0 };
 
@@ -39,7 +40,60 @@ async function configurate(configuration,esc){
     config[esc].calculationDates = [];
     config[esc].execTimes = [];
     config[esc].analysisHandler = 0;
+    config[esc].hookDataHandler = 0;
     config[esc].flag = [];
+    config[esc].analysisTime = {};
+    config[esc].initial = {};
+    config[esc].initialTimeCounter = 0;
+    config[esc].analysisFailCounter = {};
+    config[esc].timeStampInitAnalysis = {};
+    config[esc].timeStampExecAnalysis = {};
+    config[esc].timeStampFinalAnalysis = {};
+
+    let len = Object.keys(config).length;
+    if(len > 1){
+        let min = 100;
+        let max = 0;
+        let avg = 0;
+        let stdev = 0;
+        Object.entries(config).map(([esc,val], index, arr) =>{
+            if(index != arr.length - 1 && config[esc].execTimes.length > 0){
+                let min2 = config[esc].execTimes.reduce((a,b)=> {
+                    return b<a ? b : a;
+                });
+                if(min2 < min){
+                    min = min2;
+                }
+                let max2 = config[esc].execTimes.reduce((a,b)=> {
+                    return b>a ? b : a;
+                });
+                if(max2 > max){
+                    max = max2;
+                }
+                let avg2 = config[esc].execTimes.reduce((a,b)=> {
+                    return a+b;
+                })/config[esc].execTimes.length;
+                avg += avg2;
+            }
+        });
+        avg = avg/Object.keys(config).length;
+        
+        Object.entries(config).map(([esc,val], index, arr) =>{
+            if(config[esc].execTimes.length > 0){
+              let stdev2 = config[esc].execTimes.map((a) => {
+                return ((a - avg)**2)/config[esc].execTimes.length;
+              }).reduce((a,b)=> {
+                  return a+b;
+              });
+              stdev += stdev2;
+            }
+            config[esc].execTimes = [];
+        });
+    
+        stdev = Math.sqrt(stdev/Object.keys(config).length);
+
+        timesCsvBody.data += min+","+max+","+avg+","+ stdev + "," + (Object.keys(config).length - 1) + "\n";
+    }
 
     ESCnumber.counter++;
 }
@@ -101,7 +155,10 @@ async function harvesterListener(esc) {
         if (event.type === 'analysis'){
             config[esc].analysisCommited = true;
 
-            avgExecTime += event.execDuration/config[esc].frequencyControlCalculate;
+            let end = process.hrtime(config[esc].initial[event.info[0][0]]);
+            let analysisTime = (end[0]* 1000000000 + end[1]) / 1000000;
+
+            avgExecTime += analysisTime/config[esc].frequencyControlCalculate;
             controlCount++;
 
             if(controlCount >= config[esc].frequencyControlCalculate){
@@ -165,10 +222,9 @@ function harvesterHook(params, newData, esc) {
     try {
 
         config[esc].data.push(newData);
+        config[esc].hookDataFailCounter = 0;
 
         if( config[esc].data.length >= 1 && config[esc].analysisCommited){
-            let totalBeginHR = process.hrtime();
-            let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
             config[esc].analysisCommited = false;
             let submit = config[esc].data;
             config[esc].data = [];
@@ -177,19 +233,29 @@ function harvesterHook(params, newData, esc) {
             params.timeData = config[esc].dataTimeLimit;
             params.frequency = config[esc].harvestFrequency;
             
-            if(config[esc].flag.length == 0){
-                config[esc].flag.push(1)
-                contract[esc].submitTransaction(config[esc].updateDataContract, JSON.stringify(params)).then(() => {
-                    config[esc].flag.pop();
-                    let totalEndHR = process.hrtime()
-                    let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
-                    let totalDuration = (totalEnd - totalBegin) / 1000;
+            let check = setInterval (async function(){
+                if(config[esc].flag.length == 0){
+                    clearInterval (check);
+                    config[esc].flag.push(1)
+                    contract[esc].submitTransaction(config[esc].updateDataContract, JSON.stringify(params)).then(() => {
+                        config[esc].flag.pop();
 
-                    logger.info('Transaction has been submitted with an execution time of '+ totalDuration + ' ms');
-                }).catch((err)=> {
-                    logger.error(err)
-                });
-            }
+                        logger.info('Data submitted to the blockchain');
+                    }).catch((err)=> {
+                        logger.error(err)
+                    });
+                }else{
+                    config[esc].hookDataFailCounter++;
+                    if(config[esc].hookDataFailCounter > 10){
+                        clearInterval (check);
+                        config[esc].hookDataFailCounter = 0;
+                        logger.error("Hook data transaction failed");
+                        resolve();
+                    }else{
+                        logger.info("Another transaction is currently running, retrying hook...");
+                    }
+                }
+            },500);
         }
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
@@ -243,17 +309,20 @@ async function analyser(params,esc) {
     
                     logger.info('An analysis has been executed with a duration of ' + event.execDuration + ' ms');
                     console.log(event.totalDataStoredList[j]);
-                    csvBody[esc] += `${event.analysisList[j] + 1},${event.execDuration},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter}`;
+                    
+                    let end = process.hrtime(config[esc].initial[event.info[0][0]]);
+                    let analysisTime = (end[0]* 1000000000 + end[1]) / 1000000;
+                    console.log(analysisTime/1000);
+                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime/1000},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${config[esc].timeStampExecAnalysis[event.info[0][0]]},${Date.now()}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
                     }
+                    if((analysisTime/1000) > 0){
+                        config[esc].execTimes.push(analysisTime/1000);
+                    }  
                     
                     csvBody[esc] += `\n`
-                }
-    
-                if(event.execDuration > 0){
-                    config[esc].execTimes.push(event.execDuration);
-                }                   
+                }                 
          
             }   
            
@@ -269,11 +338,16 @@ async function analyser(params,esc) {
                 params.fromDates = JSON.stringify(config[esc].calculationDates);
                 params.frequency = config[esc].harvestFrequency;
                 logger.info("Launching analysis transaction");
-                await analysis(params,esc);
+                config[esc].initial[config[esc].initialTimeCounter] = process.hrtime();
+                let analysisID = config[esc].initialTimeCounter
+                config[esc].initialTimeCounter++;
+                let id = await analysis(params,esc,analysisID);
                 config[esc].calculationDates = [];
                 fromDate += config[esc].analysisFrequency*1000;
-                clearInterval(intervalCalculate[esc]);
-                intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
+                if(config[esc].elasticityMode==="harvestFrequency"){
+                    clearInterval(intervalCalculate[esc]);
+                    intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
+                }
             }
 
             setTimeout(() => {
@@ -308,7 +382,6 @@ async function analyser(params,esc) {
                 if (err) logger.error(err);
                 fs.writeFileSync(resultCalculatedFile, csvBodyCalculated,'utf8');
             });
-            ESCnumber.counter--;
             return true;
         }, config[esc].executionTime*1000 + 10000);
 
@@ -327,36 +400,43 @@ async function analyser(params,esc) {
  * @function
  * @param {object} params - An object with any aditional param besides the default ones for the smart contract to use.
  */
-async function analysis(params,esc) {
-    try {
-        config[esc].analysisFailCounter = 0;
-        const result = await contract[esc].evaluateTransaction(config[esc].queryAnalysisHolderContract, config[esc].analysisHolderId);
-        params.analysisHolder = result.toString();
-        // Submit the specified transaction.
-        let check = setInterval (async function(){
-            if(config[esc].flag.length == 0){
-                 clearInterval (check);
-                config[esc].flag.push(1);
-                await contract[esc].submitTransaction(config[esc].analysisContract, JSON.stringify(params));
-                config[esc].flag.pop();
-            }else{
-                config[esc].analysisFailCounter++;
-                if(config[esc].analysisFailCounter > 10){
+async function analysis(params,esc,analysisID) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            config[esc].analysisFailCounter[analysisID] = 0;
+            const result = await contract[esc].evaluateTransaction(config[esc].queryAnalysisHolderContract, config[esc].analysisHolderId);
+            params.analysisHolder = result.toString();
+            params.analysisID = analysisID.toString();
+            config[esc].timeStampInitAnalysis[analysisID] = Date.now();
+            // Submit the specified transaction.
+            let check = setInterval (async function(){
+                if(config[esc].flag.length == 0){
                     clearInterval (check);
-                    config[esc].analysisFailCounter = 0;
-                    logger.error("Analysis transaction failed");
+                    config[esc].flag.push(1);
+                    config[esc].timeStampExecAnalysis[analysisID] = Date.now();
+                    await contract[esc].submitTransaction(config[esc].analysisContract, JSON.stringify(params));
+                    config[esc].flag.pop();
+                    resolve();
                 }else{
-                    logger.info("Another transaction is currently running, retrying...");
+                    config[esc].analysisFailCounter[analysisID]++;
+                    if(config[esc].analysisFailCounter[analysisID] > 10){
+                        clearInterval (check);
+                        config[esc].analysisFailCounter[analysisID] = 0;
+                        logger.error("Analysis transaction failed");
+                        resolve(analysisID.toString());
+                    }else{
+                        logger.info("Another transaction is currently running, retrying...");
+                    }
                 }
-            }
-        },500);
+            },500);
 
-        // Disconnect from the gateway.
-        //await gateway.disconnect();
+            // Disconnect from the gateway.
+            //await gateway.disconnect();
 
-    } catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-    }
+        } catch (error) {
+            console.error(`Failed to submit transaction: ${error}`);
+        }
+    });
 }
 
 /**
@@ -391,4 +471,10 @@ module.exports.csvTimeout = function(esc) {
 };
 module.exports.csvBody = function(esc) {
     return csvBody[esc];
+}
+module.exports.timesCsvBody = function() {
+    return timesCsvBody;
+}
+module.exports.config = function() {
+    return config;
 }

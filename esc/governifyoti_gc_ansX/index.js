@@ -8,22 +8,22 @@ const diff = require('deep-diff');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./experiments_results/18/governifyoti_gc_ansX/",
+  resultsPath: "./experiments_results/47/governifyoti_gc_ansX/",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "governifyoti_gc_ansX",
-  csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CURRENT_ESC_RUNNING\n",
+  csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,ANALYSIS_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CURRENT_ESC_RUNNING,ANALYSIS_RETRIES,INIT_EXEC_TIME,EXEC_TIME,FINAL_EXEC_TIME,ID\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
 
 
   executionTime: 5000,
-  analysisFrequency: 10,
-  harvestFrequency: 11,
-  dataTimeLimit: 60,
+  analysisFrequency: 15,
+  harvestFrequency: 15,
+  dataTimeLimit: 5000,
   frequencyControlCalculate: 1,
-  maximumTimeAnalysis: 18,
-  minimumTimeAnalysis: 12,
-  elasticityMode: "timeWindow",
+  maximumTimeAnalysis: 3,
+  minimumTimeAnalysis: 2.5,
+  elasticityMode: "noElasticity",
   experimentName: "test",
     
   updateDataContract: "updateData",

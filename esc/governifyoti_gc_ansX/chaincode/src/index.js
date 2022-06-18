@@ -94,8 +94,12 @@ class analytics_chaincode extends Contract {
         data.Record.responses = data.Record.responses.filter((i) => {
             return i.dataCollectedDateTime >= (time - parameters.timeData*1000 - 10000);
         });
-        for(let i = 0; i < det.length; i++){
-            data.Record.responses.push(det[i]);
+        if(data.Record.responses.length < 240){
+            for (let j = 0; j < 10; j++) {
+                for(let i = 0; i < det.length; i++){
+                    data.Record.responses.push(det[i]);
+                }
+            }
         }
 
         // data.Record.responses = [det[det.length-1]];
@@ -123,7 +127,6 @@ class analytics_chaincode extends Contract {
         const vm = require('vm');
 
         let totalBeginHR = process.hrtime();
-        let totalBegin = totalBeginHR[0] * 1000000 + totalBeginHR[1] / 1000;
 
         let parameters = JSON.parse(params.toString())
         let frmDates = JSON.parse(parameters.fromDates);
@@ -132,6 +135,7 @@ class analytics_chaincode extends Contract {
         let totalNumbers = 0;
         let total = 0;
         let numData = parseInt(parameters.dataNumbers);
+        let analysisID = parameters.analysisID;
         let totalNumbersStored = 0;
         let totalNumbersStoredList = [];
 
@@ -244,15 +248,14 @@ class analytics_chaincode extends Contract {
             }
 
         }
-        let totalEndHR = process.hrtime()
-        let totalEnd = totalEndHR[0] * 1000000 + totalEndHR[1] / 1000;
-        let totalDuration = (totalEnd - totalBegin)/1000;
+        let totalEndHR = process.hrtime(totalBeginHR)
+        let totalDuration = (totalEndHR[0]* 1000000000 + totalEndHR[1]) / 1000000;
 
         if (frmDates.length == 0){
             totalDuration = 0;
         }
 
-        let info = [];
+        let info = [[analysisID]];
 
         let event = {
             execDuration: totalDuration,
@@ -263,7 +266,6 @@ class analytics_chaincode extends Contract {
             frequencyData: parameters.frequency,
             totalDataStoredList: totalNumbersStoredList,
             info: info
-
         };
 
         let s = await this.queryDataCalculation(ctx, 1);
