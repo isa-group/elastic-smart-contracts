@@ -35,59 +35,81 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
     } else {
       fs.readFile(path.join(__dirname, "../esc", file, "index.js"), 'utf8', function (err2,data) {
         if (err2) {
-          return console.log(err2);
-        }
+          console.log(err2);
+          res.send({
+            code:500,
+            message: 'Server Error'
+          })
+        } else {
+          const idESC = file.replace("governifyoti_gc_ans", "")
 
-        const idESC = file.replace("governifyoti_gc_ans", "")
+          let resultESC = data.replace(/createData"/g, "createData" + idESC + '"').
+          replace(/queryDataCalculation"/g, "queryDataCalculation" + idESC + '"').
+          replace(/createDataCalculation"/g, "createDataCalculation" + idESC + '"').
+          replace(/updateData"/g, "updateData" + idESC + '"').
+          replace(/analysis"/g, "analysis" + idESC + '"').
+          replace(/evaluateHistory"/g, "evaluateHistory" + idESC + '"').
+          replace(/evaluateFrequency"/g, "evaluateFrequency" + idESC + '"').
+          replace(/governifyoti_gc_ansX/g, file);
 
-        let resultESC = data.replace(/createData"/g, "createData" + idESC + '"').
-        replace(/queryDataCalculation"/g, "queryDataCalculation" + idESC + '"').
-        replace(/createDataCalculation"/g, "createDataCalculation" + idESC + '"').
-        replace(/updateData"/g, "updateData" + idESC + '"').
-        replace(/analysis"/g, "analysis" + idESC + '"').
-        replace(/evaluateHistory"/g, "evaluateHistory" + idESC + '"').
-        replace(/evaluateFrequency"/g, "evaluateFrequency" + idESC + '"').
-        replace(/governifyoti_gc_ansX/g, file);
+          fs.writeFile(path.join(__dirname, "../esc", file, "index.js"), resultESC, 'utf8', function (err3) {
+            if (err3){
+              console.log(err3);
+              res.send({
+                code:500,
+                message: 'Server Error'
+              })
+            } else {
+              fs.readFile(path.join(__dirname, "../esc", file, "chaincode/src/index.js"), 'utf8', function (err4,data2) {
+                if (err4) {
+                  console.log(err4);
+                  res.send({
+                    code:500,
+                    message: 'Server Error'
+                  })
+                } else {
+                  let esc = require(path.join(__dirname, "../esc", file, "index.js"))
 
-        fs.writeFile(path.join(__dirname, "../esc", file, "index.js"), resultESC, 'utf8', function (err3) {
-          if (err3) return console.log(err3);
+                  let result = data2.replace(/queryData\(/g, "queryData" + idESC + "(").
+                  replace(/createData\(/g, esc.config.dataStorageContract + "(").
+                  replace(/queryDataCalculation\(/g, esc.config.queryAnalysisHolderContract + "(").
+                  replace(/createDataCalculation\(/g, esc.config.calculationStorageContract + "(").
+                  replace(/updateData\(/g, esc.config.updateDataContract + "(").
+                  replace(/analysis\(/g, esc.config.analysisContract + "(").
+                  replace(/evaluateHistory\(/g, esc.config.evaluateWindowTimeContract + "(").
+                  replace(/evaluateFrequency\(/g, esc.config.evaluateHarvestFrequencyContract + "(").
+                  replace(/queryWithQueryString\(/g, "queryWithQueryString" + idESC + "(");
 
-          fs.readFile(path.join(__dirname, "../esc", file, "chaincode/src/index.js"), 'utf8', function (err4,data2) {
-            if (err4) {
-              return console.log(err4);
-            }
-            let esc = require(path.join(__dirname, "../esc", file, "index.js"))
-
-            let result = data2.replace(/queryData\(/g, "queryData" + idESC + "(").
-            replace(/createData\(/g, esc.config.dataStorageContract + "(").
-            replace(/queryDataCalculation\(/g, esc.config.queryAnalysisHolderContract + "(").
-            replace(/createDataCalculation\(/g, esc.config.calculationStorageContract + "(").
-            replace(/updateData\(/g, esc.config.updateDataContract + "(").
-            replace(/analysis\(/g, esc.config.analysisContract + "(").
-            replace(/evaluateHistory\(/g, esc.config.evaluateWindowTimeContract + "(").
-            replace(/evaluateFrequency\(/g, esc.config.evaluateHarvestFrequencyContract + "(").
-            replace(/queryWithQueryString\(/g, "queryWithQueryString" + idESC + "(");
-
-            fs.writeFile(path.join(__dirname, "../esc", file, "chaincode/src/index.js"), result, 'utf8', function (err5) {
-              if (err5) return console.log(err5);
-              os.execCommand(command + "./setup2.sh " + file).then(result3=> {
-                console.log("Agreement set up")
-                res.send({
-                  code: 200,
-                  message: 'Agreement set up'
-                });
-                let esc = require(path.join(__dirname ,"../esc", file, 'index.js'))
-                esc.start(metricQueries,agreement)
-              }).catch(err6=> {
-                console.log(err6)
-                res.send({
-                  code: 500,
-                  message: 'Server Error'
-                });
+                  fs.writeFile(path.join(__dirname, "../esc", file, "chaincode/src/index.js"), result, 'utf8', function (err5) {
+                    if (err5){
+                      console.log(err5);
+                      res.send({
+                        code:500,
+                        message: 'Server Error'
+                      })
+                    } else {
+                      os.execCommand(command + "./setup2.sh " + file).then(result3=> {
+                        console.log("Agreement set up")
+                        res.send({
+                          code: 200,
+                          message: 'Agreement set up'
+                        });
+                        let esc = require(path.join(__dirname ,"../esc", file, 'index.js'))
+                        esc.start(metricQueries,agreement)
+                      }).catch(err6=> {
+                        console.log(err6)
+                        res.send({
+                          code: 500,
+                          message: 'Server Error'
+                        });
+                      });
+                    }
+                  });
+                }
               });
-            });
+            }
           });
-        });
+        }
       });
     };
   });

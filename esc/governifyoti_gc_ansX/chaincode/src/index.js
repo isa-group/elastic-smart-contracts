@@ -95,7 +95,7 @@ class analytics_chaincode extends Contract {
             return i.dataCollectedDateTime >= (time - parameters.timeData*1000 - 10000);
         });
         if(data.Record.responses.length < 240){
-            for (let j = 0; j < 10; j++) {
+            for (let j = 0; j < parameters.dataPerHarvest; j++) {
                 for(let i = 0; i < det.length; i++){
                     data.Record.responses.push(det[i]);
                 }
@@ -255,7 +255,7 @@ class analytics_chaincode extends Contract {
             totalDuration = 0;
         }
 
-        let info = [[analysisID]];
+        let info = [[analysisID],[Object.keys(guaranteesValues).length]];
 
         let event = {
             execDuration: totalDuration,
