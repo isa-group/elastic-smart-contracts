@@ -46,7 +46,7 @@ function readFiles(dirname) {
                         for (var k = 0; k < intervals.length - 1 ; k++) {
                             let timeA = parseFloat(dataAnalysis[7]);
                             if(timeA >= intervals[k] && timeA < intervals[k+1]){
-                                data[k].push({data : parseFloat(dataAnalysis[1]), timeA: parseFloat(dataAnalysis[2]), windowData: parseFloat(dataAnalysis[4])});
+                                data[k].push({time: parseFloat(dataAnalysis[1]),timeA:parseFloat(dataAnalysis[2]), esc: dirname.split("ans")[1].split("/")[0], window: parseFloat(dataAnalysis[4])});
                             }
                         }
                     });
@@ -66,75 +66,69 @@ counter.forEach(async function (elmnt) {
     i = elmnt;
     let data = await readFiles('./experiments_results/' + experimentID + '/governifyoti_gc_ans' + i + '/')
     if(data){
-        let timesCsvBody = "TIMESTAMP,MIN_TIME,MAX_TIME,MEAN_TIME,STDEV_TIME,MIN_TIME_A,MAX_TIME_A,MEAN_TIME_A,STDEV_TIME_A,MIN_WIN,MAX_WIN,MEAN_WIN,STDEV_WIN\n";
+        let timesCsvBody = "TIMESTAMP,";
+        counter.forEach(function (elmnt) {
+            timesCsvBody += "ESC" + elmnt + "_Time,";
+        });
+        counter.forEach(function (elmnt) {
+            timesCsvBody += "ESC" + elmnt + "_Time_A,";
+        });
+        counter.forEach(function (elmnt) {
+            if(elmnt != ESCsNumber){
+                timesCsvBody += "ESC" + elmnt + "_Window,";
+            } else {
+                timesCsvBody += "ESC" + elmnt + "_Window\n";
+            }
+        });
         let count = 0;
         data.forEach(function (element) {
-            let min = 1000;
-            let max = 0;
-            let avg = 0;
-            let stdev = 0;
-
-            let minW = 10000;
-            let maxW = 0;
-            let avgW = 0;
-            let stdevW = 0;
-
-            let minA = 1000;
-            let maxA = 0;
-            let avgA = 0;
-            let stdevA = 0;
-
-            element.forEach(function (element2) {
-                if(element2.data < min){
-                    min = element2.data;
+            timesCsvBody += intervals[count] + ",";
+            counter.forEach(function (elmnt) {
+                let cc = false;
+                element.forEach(function (elmnt2) {
+                    if(elmnt2.esc == elmnt.toString() && !cc){
+                        cc = true;
+                        timesCsvBody += elmnt2.time + ",";
+                    }
+                });
+                if(!cc){
+                    timesCsvBody += " ,";
                 }
-
-                if(element2.data > max){
-                    max = element2.data;
-                }
-
-                avg += element2.data;
-                
-                if(element2.windowData < minW){
-                    minW = element2.windowData;
-                }
-
-                if(element2.windowData > maxW){
-                    maxW = element2.windowData;
-                }
-
-                avgW += element2.windowData;
-
-                if(element2.timeA < minA){
-                    minA = element2.timeA;
-                }
-
-                if(element2.timeA > maxA){
-                    maxA = element2.timeA;
-                }
-
-                avgA += element2.timeA;
-
             });
-            avg = avg / element.length;
-            avgW = avgW / element.length;
-            avgA = avgA / element.length;
 
-            element.forEach(function (element2) {
-                stdev += ((element2.data - avg)**2)/element.length;
-                stdevW += ((element2.windowData - avgW)**2)/element.length;
-                stdevA += ((element2.timeA - avgA)**2)/element.length;
+            counter.forEach(function (elmnt) {
+                let cc = false;
+                element.forEach(function (elmnt2) {
+                    if(elmnt2.esc == elmnt){
+                        cc = true;
+                        timesCsvBody += elmnt2.timeA + ",";
+                    }
+                });
+                if(!cc){
+                    timesCsvBody += " ,";
+                }
             });
-            stdev = Math.sqrt(stdev);
-            stdevW = Math.sqrt(stdevW);
-            stdevA = Math.sqrt(stdevA);
 
-            if(intervals[count] && avg){
-                timesCsvBody += intervals[count] + "," + min+","+max+","+avg+","+stdev+ "," + minA+","+maxA+","+avgA+","+stdevA + "," + minW+","+maxW+","+avgW+","+stdevW+ "\n";
-            }
+            counter.forEach(function (elmnt) {
+                let cc = false;
+                element.forEach(function (elmnt2) {
+                    if(elmnt2.esc == elmnt){
+                        cc = true;
+                        timesCsvBody += elmnt2.window + ",";
+                    }
+                });
+                if(!cc){
+                    timesCsvBody += " ,";
+                }
+            });
+            
+
+            // if(intervals[count] && avg){
+                timesCsvBody += "\n";
+            //}
             count++;
         });
-        let timesCsvFile = './experiments_results/' + experimentID + '/Info_' + new Date().toISOString().replace(/:/g, '-') + ".csv"
+        let timesCsvFile = './experiments_results/' + experimentID + '/Curva_Regresion_' + new Date().toISOString().replace(/:/g, '-') + ".csv"
         fs.mkdir(getDirName(timesCsvFile), { recursive: true}, function (err) {
             if (err) logger.error(err);
             fs.writeFileSync(timesCsvFile, timesCsvBody,'utf8');

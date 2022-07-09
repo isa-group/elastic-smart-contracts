@@ -155,6 +155,11 @@ class analytics_chaincode extends Contract {
                 for(let l=0;l<data.length; l++){
                     totalNumbersStored += data[l].Record.responses.length;
 
+                    if(!data[l].Record.responses[0]){
+                        console.log("No metrics stored");
+                        return;
+                    }
+
                     var agreement = data[l].Record.responses[0].agreement
 
 

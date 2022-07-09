@@ -258,7 +258,7 @@ async function analyser(params,esc) {
     
                 for(let j = 0; j< event.analysisList.length; j++){
     
-                    if(config[esc].maximumTimeAnalysis*0.9 < event.execDuration){
+                    if(config[esc].maximumTimeAnalysis < event.execDuration){
                         config[esc].countCalculationsOverMax++;
                     }
     
@@ -299,12 +299,12 @@ async function analyser(params,esc) {
                     config[esc].initialTimeCounter++;
                     await analysis(params,esc,analysisID);
                     config[esc].calculationDates = [];
-                    fromDate += config[esc].analysisFrequency*1000;
+                    if(config[esc].elasticityMode==="harvestFrequency"){
+                        clearInterval(intervalCalculate[esc]);
+                        intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
+                    }
                 }
-                if(config[esc].elasticityMode==="harvestFrequency"){
-                    clearInterval(intervalCalculate[esc]);
-                    intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
-                }
+                fromDate += config[esc].analysisFrequency*1000;
             }
 
             setTimeout(() => {

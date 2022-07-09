@@ -8,7 +8,7 @@ const diff = require('deep-diff');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./experiments_results/66/governifyoti_gc_ansX/",
+  resultsPath: "./experiments_results/68/governifyoti_gc_ansX/",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "governifyoti_gc_ansX",
@@ -26,7 +26,7 @@ let config = {
   elasticityMode: "timeWindow",
   experimentName: "test",
   coldStart: true,
-  numberOfESCs: 16,
+  numberOfESCs: 2,
   dataPerHarvest: 10,
     
   updateDataContract: "updateData",

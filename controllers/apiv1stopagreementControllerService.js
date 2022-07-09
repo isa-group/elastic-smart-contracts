@@ -33,7 +33,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
           })
         } else {
           console.log(path)
-          console.log(csvBody);
+          console.log(csvBody.length);
           fs.writeFileSync(path, csvBody,'utf8');
 
           fs.rm("esc/" + file, { recursive: true, force: true }, (err) => { 
