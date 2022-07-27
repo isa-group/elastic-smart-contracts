@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csvtojson');
 const governify = require('governify-commons');
+const Logger = require('governify-commons/logger');
 const logger = governify.getLogger().tag('index');
 const getDirName = require('path').dirname;
 
@@ -21,6 +22,7 @@ var config = {}
 var intervalCalculate = {}
 var csvTimeout = {}
 var csvBody = {};
+var csvBodyHarvest = {};
 
 var ESCnumber = { counter: 0 };
 
@@ -32,7 +34,6 @@ var ESCnumber = { counter: 0 };
  */
 async function configurate(configuration,esc){
     config[esc] = JSON.parse(JSON.stringify(configuration));
-    config[esc].analysisCommited = true;
     config[esc].changeFrequency = {change: false, newFrequency: 0};
     config[esc].data = [];
     config[esc].countCalculationsOverMax = 0;
@@ -42,12 +43,12 @@ async function configurate(configuration,esc){
     config[esc].hookDataHandler = 0;
     config[esc].flag = [];
     config[esc].analysisTime = {};
-    config[esc].initial = {};
     config[esc].initialTimeCounter = 0;
+    config[esc].updateDataCounter = 0;
+    config[esc].timeStampInitUpdateData = {};
     config[esc].analysisFailCounter = {};
     config[esc].timeStampInitAnalysis = {};
-    config[esc].timeStampExecAnalysis = {};
-    config[esc].timeStampFinalAnalysis = {};
+    config[esc].analysisTransactionTimesHistory = [];
 
     ESCnumber.counter++;
 }
@@ -106,20 +107,24 @@ async function harvesterListener(esc) {
         event = JSON.parse(event); 
 
         if (event.type === 'analysis'){
-            config[esc].analysisCommited = true;
 
-            let end = process.hrtime(config[esc].initial[event.info[0][0]]);
+            let end = process.hrtime(config[esc].timeStampInitAnalysis[event.info[0][0]]);
             let analysisTime = ((end[0]* 1000000000 + end[1]) / 1000000) / 1000;
 
             avgExecTime += analysisTime/config[esc].frequencyControlCalculate;
             controlCount++;
 
             if(controlCount >= config[esc].frequencyControlCalculate){
+                if(!config[esc].analysisTransactionTimesHistory[event.info[0][0]]){
+                    config[esc].analysisTransactionTimesHistory[event.info[0][0]] = avgExecTime;
+                }
+                let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numbeOfTimesForAnalysisAvg);
+                let avgLastFiveTimes = lastFiveTimes.reduce((a,b) => a+b,0)/lastFiveTimes.length;
 
                 try{
                 if(config[esc].elasticityMode === "timeWindow"){
                     
-                    contract[esc].evaluateTransaction(config[esc].evaluateWindowTimeContract, config[esc].dataTimeLimit, avgExecTime, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
+                    contract[esc].evaluateTransaction(config[esc].evaluateWindowTimeContract, config[esc].dataTimeLimit, avgLastFiveTimes, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
                         let newTime = JSON.parse(res.toString());
                         if(newTime < 1){
                             newTime = 1;
@@ -133,7 +138,7 @@ async function harvesterListener(esc) {
                         }
                     });
                 }else if(config[esc].elasticityMode === "harvestFrequency"){
-                    contract[esc].evaluateTransaction(config[esc].evaluateHarvestFrequencyContract, config[esc].harvestFrequency, avgExecTime, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
+                    contract[esc].evaluateTransaction(config[esc].evaluateHarvestFrequencyContract, config[esc].harvestFrequency, avgLastFiveTimes, config[esc].maximumTimeAnalysis, config[esc].minimumTimeAnalysis).then((res) => {
                         let newTime = JSON.parse(res.toString());
                         if(newTime < 5){
                             newTime = 5;
@@ -142,7 +147,7 @@ async function harvesterListener(esc) {
                         }
                         
                         if(newTime > 0 && newTime >= config[esc].analysisFrequency && newTime != config[esc].harvestFrequency){
-                            logger.info("New Harvest Frequency: " + newTime);
+                            logger.info(esc +": New Harvest Frequency: " + newTime);
                             config[esc].changeFrequency = {change: true, newFrequency: newTime}
                             config[esc].harvestFrequency = newTime;
 
@@ -163,6 +168,17 @@ async function harvesterListener(esc) {
     }, config[esc].executionTime*1000 + 100);
 }
 
+function updateDataListener(esc) {
+    contract[esc].addContractListener((event) => {
+        event = event.payload.toString();
+        event = JSON.parse(event);
+        let endUpdateData = Date.now();
+        let updateDataTransactionTime = endUpdateData - config[esc].timeStampInitUpdateData[event.updateDataID];
+        if (event.type === 'updateData') {
+            csvBodyHarvest[esc] += `${config[esc].timeStampInitUpdateData[event.updateDataID]},${endUpdateData},${updateDataTransactionTime},${event.initTime},${event.endTime},${event.totalTime},${event.collectorRequestTime}\n`;
+        }
+    });
+}
 
 /**
  * This functions save the new data from the harvester until enough data for a batch to introduce is ready and the storage data is not currently in use
@@ -172,14 +188,13 @@ async function harvesterListener(esc) {
  * @param {object} newData - The new data to introduce in the blockchain or temporarely hold to introduce it later.
  */
 function harvesterHook(params, newData, esc) {
-    if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
+    //if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
         try {
 
             config[esc].data.push(newData);
             config[esc].hookDataFailCounter = 0;
 
-            if( config[esc].data.length >= 1 && config[esc].analysisCommited){
-                config[esc].analysisCommited = false;
+            if( config[esc].data.length >= 1){
                 let submit = config[esc].data;
                 config[esc].data = [];
 
@@ -187,35 +202,44 @@ function harvesterHook(params, newData, esc) {
                 params.timeData = config[esc].dataTimeLimit;
                 params.frequency = config[esc].harvestFrequency;
                 params.dataPerHarvest = config[esc].dataPerHarvest;
-                
-                let check = setInterval (async function(){
+                params.collectorRequestTime = newData.collectorRequestTime;
+
+                async function hookData(){
+                    console.log("HAR")
+                    console.log(config[esc].flag)
                     if(config[esc].flag.length == 0){
                         clearInterval (check);
-                        config[esc].flag.push(1)
+                        config[esc].flag.push("harvest")
+                        params.updateDataID = config[esc].updateDataCounter;
+                        config[esc].timeStampInitUpdateData[config[esc].updateDataCounter] = Date.now();
                         contract[esc].submitTransaction(config[esc].updateDataContract, JSON.stringify(params)).then(() => {
                             config[esc].flag.pop();
+                            config[esc].updateDataCounter++;
 
-                            logger.info('Data submitted to the blockchain');
+                            logger.info(esc +': Data submitted to the blockchain');
                         }).catch((err)=> {
                             logger.error(err)
                         });
                     }else{
+                        logger.error("FAILED " + config[esc].hookDataFailCounter)
                         config[esc].hookDataFailCounter++;
                         if(config[esc].hookDataFailCounter > 10){
                             clearInterval (check);
                             config[esc].hookDataFailCounter = 0;
-                            logger.error("Hook data transaction failed");
+                            logger.error(esc +": Hook data transaction failed");
                             resolve();
                         }else{
-                            logger.info("Another transaction is currently running, retrying hook...");
+                            logger.info(esc +": Another transaction is currently running, retrying hook...");
                         }
                     }
-                },500);
+                }
+                let check = "";
+                check = setInterval (hookData,500);
             }
         } catch (error) {
             console.error(`Failed to submit transaction: ${error}`);
         }
-    }
+    //}
 }
 
 /**
@@ -227,8 +251,10 @@ function harvesterHook(params, newData, esc) {
 async function analyser(params,esc) {
     try {
         csvBody[esc] = "";
+        csvBodyHarvest[esc] = "";
         // let csvBodyCalculated = "";
         let resultFile = config[esc].resultsPath+"/" + config[esc].experimentName + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
+        let resultFileHarvest = config[esc].resultsPath+"/" + config[esc].experimentName + "_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+"_harvest.csv";
         fs.readFile(resultFile, (err, data) => {
             if(err){
                 csvBody[esc] = config[esc].csvResultsCalculationsHeader;
@@ -236,6 +262,13 @@ async function analyser(params,esc) {
                 csvBody[esc] = data;
             }
         });
+        fs.readFile(resultFileHarvest, (err, data) => {
+            if(err){
+                csvBodyHarvest[esc] = config[esc].csvResultsHarvestHeader;
+            }else{
+                csvBodyHarvest[esc] = data;
+            }
+        })
         //let resultCalculatedFile = config[esc].resultsPath +"/"+ config[esc].experimentName + "_results_" + new Date().toLocaleDateString().replace("/","_").replace("/","_")+".csv";
         // fs.readFile(resultCalculatedFile, (err, data) => {
         //     if(err){
@@ -262,18 +295,24 @@ async function analyser(params,esc) {
                         config[esc].countCalculationsOverMax++;
                     }
     
-                    logger.info('An analysis has been executed with a duration of ' + event.execDuration + ' ms');
+                    logger.info(esc +': An analysis has been executed with a duration of ' + event.execDuration + ' ms');
                     console.log(event.totalDataStoredList[j]);
                     
-                    let end = process.hrtime(config[esc].initial[event.info[0][0]]);
-                    let analysisTime = (end[0]* 1000000000 + end[1]) / 1000000;
-                    console.log(analysisTime/1000);
-                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime/1000},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${config[esc].timeStampExecAnalysis[event.info[0][0]]},${Date.now()}`;
+                    let end = process.hrtime(config[esc].timeStampInitAnalysis[event.info[0][0]]);
+                    let analysisTime = ((end[0]* 1000000000 + end[1]) / 1000000) / 1000;
+                    console.log(analysisTime);
+                    if(!config[esc].analysisTransactionTimesHistory[event.info[0][0]]){
+                        config[esc].analysisTransactionTimesHistory[event.info[0][0]] = analysisTime;
+                    }
+                    let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numbeOfTimesForAnalysisAvg);
+                    let avgLastFiveTimes = lastFiveTimes.reduce((a,b) => a+b,0)/lastFiveTimes.length;
+
+                    csvBody[esc] += `${event.analysisList[j] + 1},${avgLastFiveTimes},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].hookDataFailCounter},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${Date.now()}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
                     }
-                    if((analysisTime/1000) > 0){
-                        config[esc].execTimes.push(analysisTime/1000);
+                    if(avgLastFiveTimes > 0){
+                        config[esc].execTimes.push(avgLastFiveTimes);
                     }  
                     
                     csvBody[esc] += `\n`
@@ -284,17 +323,17 @@ async function analyser(params,esc) {
         });
 
         setTimeout(() => {
+            console.log("ANALYSIS STARTED")
             intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
 
             async function intAnalysis (){
                 console.log(ESCnumber.counter);
-                if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
+                //if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
                     config[esc].calculationDates.push(fromDate);
                     params.timeData = config[esc].dataTimeLimit;
                     params.fromDates = JSON.stringify(config[esc].calculationDates);
                     params.frequency = config[esc].harvestFrequency;
-                    logger.info("Launching analysis transaction");
-                    config[esc].initial[config[esc].initialTimeCounter] = process.hrtime();
+                    logger.info(esc +": Launching analysis transaction");
                     let analysisID = config[esc].initialTimeCounter
                     config[esc].initialTimeCounter++;
                     await analysis(params,esc,analysisID);
@@ -303,14 +342,14 @@ async function analyser(params,esc) {
                         clearInterval(intervalCalculate[esc]);
                         intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
                     }
-                }
+                //}
                 fromDate += config[esc].analysisFrequency*1000;
             }
 
             setTimeout(() => {
                 clearInterval(intervalCalculate[esc]);
             }, config[esc].executionTime*1000 + 500);
-        }, 5000);
+        }, config[esc].analysisStartDelay * 1000);
 
 
         csvTimeout[esc] = setTimeout(async () => {
@@ -318,6 +357,10 @@ async function analyser(params,esc) {
             fs.mkdir(getDirName(resultFile), { recursive: true}, function (err) {
                 if (err) logger.error(err);
                 fs.writeFileSync(resultFile, csvBody[esc],'utf8');
+            });
+            fs.mkdir(getDirName(resultFileHarvest), { recursive: true}, function (err) {
+                if (err) logger.error(err);
+                fs.writeFileSync(resultFileHarvest, csvBodyHarvest[esc],'utf8');
             });
             //gateway[esc].disconnect();
             // let min = config[esc].execTimes.reduce((a,b)=> {
@@ -364,13 +407,14 @@ async function analysis(params,esc,analysisID) {
             const result = await contract[esc].evaluateTransaction(config[esc].queryAnalysisHolderContract, config[esc].analysisHolderId);
             params.analysisHolder = result.toString();
             params.analysisID = analysisID.toString();
-            config[esc].timeStampInitAnalysis[analysisID] = Date.now();
             // Submit the specified transaction.
             let check = setInterval (async function(){
+                console.log("ANA")
+                console.log(config[esc].flag)
                 if(config[esc].flag.length == 0){
                     clearInterval (check);
-                    config[esc].flag.push(1);
-                    config[esc].timeStampExecAnalysis[analysisID] = Date.now();
+                    config[esc].flag.push("analysis");
+                    config[esc].timeStampInitAnalysis[analysisID] = process.hrtime();
                     await contract[esc].submitTransaction(config[esc].analysisContract, JSON.stringify(params));
                     config[esc].flag.pop();
                     resolve();
@@ -379,13 +423,13 @@ async function analysis(params,esc,analysisID) {
                     if(config[esc].analysisFailCounter[analysisID] > 10){
                         clearInterval (check);
                         config[esc].analysisFailCounter[analysisID] = 0;
-                        logger.error("Analysis transaction failed");
+                        logger.error(esc +": Analysis transaction failed");
                         resolve();
                     }else{
-                        logger.info("Another transaction is currently running, retrying...");
+                        logger.info(esc +": Another transaction is currently running, retrying...");
                     }
                 }
-            },500);
+            },config[esc].analysisRetryTime);
 
             // Disconnect from the gateway.
             //await gateway.disconnect();
@@ -420,6 +464,7 @@ module.exports.configurate = configurate;
 module.exports.getNewFrequency = getNewFrequency;
 module.exports.frequencyChanged = frequencyChanged;
 module.exports.ESCnumber = ESCnumber;
+module.exports.updateDataListener = updateDataListener;
 module.exports.intervalCalculate = function(esc) {
     return intervalCalculate[esc];
 };
@@ -428,4 +473,8 @@ module.exports.csvTimeout = function(esc) {
 };
 module.exports.csvBody = function(esc) {
     return csvBody[esc];
+}
+
+module.exports.csvBodyHarvest = function(esc) {
+    return csvBodyHarvest[esc];
 }

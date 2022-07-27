@@ -8,26 +8,31 @@ const diff = require('deep-diff');
 
 let config = {
   conexionPath: "./network/organizations/peerOrganizations/org1.example.com/connection-org1.json",
-  resultsPath: "./experiments_results/68/governifyoti_gc_ansX/",
+  resultsPath: "./experiments_results/96/governifyoti_gc_ansX/",
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "governifyoti_gc_ansX",
-  csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,ANALYSIS_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CURRENT_ESC_RUNNING,ANALYSIS_RETRIES,INIT_EXEC_TIME,EXEC_TIME,FINAL_EXEC_TIME,ID,GUARANTEES\n",
+  csvResultsCalculationsHeader: "RESPONSES,TOTAL_TIME,ANALYSIS_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,RESPONSES_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CURRENT_ESC_RUNNING,ANALYSIS_RETRIES,HOOK_DATA_RETRIES,INIT_EXEC_TIME,FINAL_EXEC_TIME,ID,GUARANTEES\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
+  csvResultsHarvestHeader: "INIT_TIME,FINAL_TIME,TOTAL_TIME,INIT_UPDATE_TIME,FINAL_UPDATE_TIME,TOTAL_UPDATE_TIME,COLLECTOR_TIME,\n",
 
-
-  executionTime: 5000,
-  analysisFrequency: 15,
-  harvestFrequency: 15,
-  dataTimeLimit: 30,
+  executionTime: 20000,
+  analysisFrequency: 30,
+  harvestFrequency: 30,
+  analysisStartDelay: 15,
+  harvestStartDelay: 0,
+  dataTimeLimit: 90,
   frequencyControlCalculate: 1,
   maximumTimeAnalysis: 3.2,
   minimumTimeAnalysis: 3,
-  elasticityMode: "timeWindow",
+  elasticityMode: "noElasticity",
   experimentName: "test",
-  coldStart: true,
+  coldStart: false,
   numberOfESCs: 2,
   dataPerHarvest: 10,
+  analysisRetryTime: 500,
+  numbeOfTimesForAnalysisAvg: 5,
+
     
   updateDataContract: "updateData",
   evaluateWindowTimeContract: "evaluateHistory",
@@ -53,11 +58,13 @@ let analyserParams = {
 var stop = false;
 var interval = "";
 var timeout = "";
+let intervalColdStart = "";
 
 
 async function hookData(metricQueries, agreement){
   
   var compositeResponse = [];
+  let initCollectorRequestTime = Date.now();
   let requests = metricQueries.map( metricQuery => {
     const collector = metricQuery.collector;
     const urlParams = metricQuery.urlParams;
@@ -144,6 +151,7 @@ async function hookData(metricQueries, agreement){
   });
 
   return Promise.all(requests).then(() => {
+    let totalCollectorRequestTime = Date.now() - initCollectorRequestTime;
     let timedScopes = [];
     let metricValues = [];
 
@@ -170,12 +178,15 @@ async function hookData(metricQueries, agreement){
       metricValues[tsIndex][metricValue.id] = metricValue;
     });
 
+    console.log(metricValues[0])
+
     let newData = {
       dataCollectedDateTime: Date.now(),
       numberResponses: 1,
       timedScopes: timedScopes,
       responses: metricValues,
-      agreement: agreement
+      agreement: agreement,
+      collectorRequestTime: totalCollectorRequestTime,
     };
 
     return newData;
@@ -292,9 +303,11 @@ async function intervalHarvester(frequency, metricQueries, agreement) {
       
     }, frequency*1000);
   }else{
-    interval = await setInterval(async () => {
+    interval = setInterval(async () => {
+      console.log("harvesting data");
     
       let newData = await hookData(metricQueries, agreement);
+      console.log("data harvested");
   
       ESC.harvesterHook(harvesterHookParams, newData,config.chaincodeName);
   
@@ -315,26 +328,32 @@ function start(metricQueries, agreement){
   stop = false;
   
   ESC.connect(config.chaincodeName).then(async () =>{
-  
-    ESC.analyser(analyserParams,config.chaincodeName);
-  
-    ESC.harvesterListener(config.chaincodeName);
 
-    //First time we collect data to introduce it in the blockchain before first analysis is done
-    let dataCollected = await hookData(metricQueries, agreement);
+    intervalColdStart = setInterval(async () => {
+      if((ESC.ESCnumber.counter == config.numberOfESCs && config.coldStart) || !config.coldStart){
+        clearInterval(intervalColdStart);
   
-    ESC.harvesterHook(harvesterHookParams, dataCollected,config.chaincodeName);
-  
-    intervalHarvester(config.harvestFrequency, metricQueries, agreement);
+        ESC.analyser(analyserParams,config.chaincodeName);
+      
+        ESC.harvesterListener(config.chaincodeName);
 
-    if(config.elasticityMode == "harvestFrequency") {
-      timeout = setTimeout(() => {
-        stop = true;
-        logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
-      }, config.executionTime*1000 + 100);
-    }
-    
+        ESC.updateDataListener(config.chaincodeName);
+
+        //First time we collect data to introduce it in the blockchain before first analysis is done
   
+        setTimeout(() => {
+          console.log("HARVEST STARTED")
+          intervalHarvester(config.harvestFrequency, metricQueries, agreement);
+        } , config.harvestStartDelay*1000);
+
+        if(config.elasticityMode == "harvestFrequency") {
+          timeout = setTimeout(() => {
+            stop = true;
+            logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
+          }, config.executionTime*1000 + 100);
+        }
+      }
+    }, 1);
   })
 
 }

@@ -107,10 +107,17 @@ class analytics_chaincode extends Contract {
 
         await ctx.stub.putState(data.Key, Buffer.from(JSON.stringify(data.Record)));
 
+        let endTime = Date.now();
+
         let event = {
             type: 'updateData',
             timeData: parameters.timeData,
-            frequency: parameters.frequency
+            frequency: parameters.frequency,
+            initTime: time,
+            endTime: endTime,
+            totalTime: endTime - time,
+            updateDataID: parameters.updateDataID,
+            collectorRequestTime: parameters.collectorRequestTime,
         };
         await ctx.stub.setEvent('UpdateDataEvent', Buffer.from(JSON.stringify(event)));
 

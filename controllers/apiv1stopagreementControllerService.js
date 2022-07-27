@@ -14,6 +14,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
     let intervalCalculate = esc_core.intervalCalculate(file)
     let csvTimeout = esc_core.csvTimeout(file);
     let csvBody = esc_core.csvBody(file);
+    let csvBodyHarvest = esc_core.csvBodyHarvest(file);
     let ESCnumber = esc_core.ESCnumber.counter;
     if(esc.getIntervals() && esc_core.intervalCalculate(file) && esc_core.csvTimeout(file)){
       clearInterval(intervals[0])
@@ -24,6 +25,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
       esc_core.ESCnumber.counter = ESCnumber - 1
       logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
       const path = esc.config.resultsPath + "/ID_8_" + new Date().toISOString().replace(/:/g, '-') + ".csv"
+      const pathHarvest = esc.config.resultsPath + "/ID_8_" + new Date().toISOString().replace(/:/g, '-') + "_harvest.csv"
       fs.mkdir(getDirName(path), { recursive: true}, function (err) {
         if (err){
           logger.error(err);
@@ -35,6 +37,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
           console.log(path)
           console.log(csvBody.length);
           fs.writeFileSync(path, csvBody,'utf8');
+          fs.writeFileSync(pathHarvest, csvBodyHarvest,'utf8');
 
           fs.rm("esc/" + file, { recursive: true, force: true }, (err) => { 
             if(err){
