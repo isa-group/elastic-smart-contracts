@@ -11,17 +11,25 @@ o to [**elastic-smart-contracts/esc-template/**](https://github.com/isa-group/el
   - **chaincodeName**: name of the chaincode to use.
   - **csvResultsCalculationsHeader**: header for the calculations result file.
   - **csvResultsExperimentHeader**: header for the experiment result file.
+  - **csvResultsHarvestHeader**: header for the harvest result file.
 
 
   - **executionTime**: duration of the experiment, in seconds.
   - **analysisFrequency**: frequency for the analyser to launch an analysis, in seconds.
   - **harvestFrequency**: frequency for the harvest to collect data, in seconds.
+  - **analysisStartDelay**: Delay to start submitting analysis transactions, in seconds.
+  - **harvestStartDelay**: Delay to start haversting data, in seconds.
   - **dataTimeLimit**: time window for data in seconds before being rendered too old, in seconds.
   - **frequencyControlCalculate**: number of calculations between elasticity control.
-  - **maximumTimeAnalysis**: maximum time allowed for the calculation before aplying elasticity in miliseconds.
-  - **minimumTimeAnalysis**: minimum time allowed for the calculation before aplying elasticity in miliseconds.
+  - **maximumTimeAnalysis**: maximum time allowed for the analysis transaction before aplying elasticity in seconds.
+  - **minimumTimeAnalysis**: minimum time allowed for the analysis transaction before aplying elasticity in seconds.
   - **elasticityMode**: type of experiment, being "noElasticity" with no elasticity (default), "timeWindow" with elasticity in time window and "harvestFrequency" with elasticty in harvest frequency.
   - **experimentName**: prefix that will be used for the result files.
+  - **numberOfESCs**: number of ESCs that will be executed. It is only necessary if 'coldStart' configuration is set to true.
+  - **coldStart**: if set as true, it will wait for N ESC to be running, where N is the value of the numberOfESCs configuration.
+  - **dataPerHarvest**: amount of times that every data collected will be stored to the asset.
+  - **analysisRetryTime**: time to retry an analysis transaction submmission in case it failed.
+  - **numberOfTimesForAnalysisAvg**: number of last analysis time executions used to calculate the average time that will be used to evaluate the elasticity.
     
   - **updateDataContract**: name of the contract responsible for uploading new data to the Blockchain.
   - **evaluateHistoryContract**: name of the contract responsible for evaluating the time window of data to apply elasticity if necessary.
