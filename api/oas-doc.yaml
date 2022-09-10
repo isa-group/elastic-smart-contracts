@@ -41,6 +41,7 @@ paths:
                 $ref: '#/components/schemas/errorModel'
   '/api/v1/setUp/{agreement}':
     post:
+      description: Set the agreement up
       operationId: setUpAgreement
       parameters:
         - name: agreement
@@ -66,6 +67,7 @@ paths:
                 $ref: '#/components/schemas/errorModel'
   '/api/v1/stop/{agreement}':
     delete:
+      description: Stop and delete the agreement
       operationId: stopAgreement
       parameters:
         - name: agreement
@@ -85,7 +87,7 @@ paths:
                 $ref: '#/components/schemas/errorModel'
   '/api/v1/guarantees/{agreement}/{guarantee}':
     get:
-      description: Get guarantee state
+      description: Get guarantee state of the agreement
       operationId: guarantee
       parameters:
         - name: guarantee

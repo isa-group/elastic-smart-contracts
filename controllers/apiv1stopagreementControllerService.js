@@ -6,7 +6,7 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
   const logger = governify.getLogger().tag('index');
   const getDirName = require('path').dirname;
 
-  const file = "governify" + req.agreement.value
+  const file = req.agreement.value
   try{
     const esc = require("../esc/" + file + '/index.js')
     let esc_core = require("../esc_core/index.js")
@@ -24,8 +24,10 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
       esc.stop = true
       esc_core.ESCnumber.counter = ESCnumber - 1
       logger.info("************** EXECUTION COMPLETED, SHUTING DOWN ********************")
-      const path = esc.config.resultsPath + "/ID_8_" + new Date().toISOString().replace(/:/g, '-') + ".csv"
-      const pathHarvest = esc.config.resultsPath + "/ID_8_" + new Date().toISOString().replace(/:/g, '-') + "_harvest.csv"
+      // Path of the analysis data file
+      const path = esc.config.resultsPath + "/" + new Date().toISOString().replace(/:/g, '-') + ".csv"
+      // Path of the harvest data file
+      const pathHarvest = esc.config.resultsPath + "/" + new Date().toISOString().replace(/:/g, '-') + "_harvest.csv"
       fs.mkdir(getDirName(path), { recursive: true}, function (err) {
         if (err){
           logger.error(err);
@@ -34,11 +36,10 @@ module.exports.stopAgreement = async function stopAgreement(req, res, next) {
             message: 'Server Error'
           })
         } else {
-          console.log(path)
-          console.log(csvBody.length);
           fs.writeFileSync(path, csvBody,'utf8');
           fs.writeFileSync(pathHarvest, csvBodyHarvest,'utf8');
 
+          // Delete the agreement
           fs.rm("esc/" + file, { recursive: true, force: true }, (err) => { 
             if(err){
               logger.error(err)

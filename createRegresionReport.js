@@ -4,7 +4,7 @@ const getDirName = require('path').dirname;
 
 var counter = [];
 const ESCsNumber = 2;
-const experimentID = 96;
+const experimentID = 102;
 
 for (var t = 1; t <= ESCsNumber; t++) {
     counter.push(t)
@@ -23,20 +23,22 @@ function readFiles(dirname) {
                 return;
             }
             filenames.forEach(function (filename) {
-                fs.readFile(dirname + filename, 'utf-8', function (err, content) {
-                    if (err) {
-                        console.log(err)
-                        return;
-                    }
-                    let dataESC = content.split('\n');
-                    dataESC.shift();
-                    dataESC.pop();
-                    dataESC.forEach(function (element) {
-                        let dataAnalysis = element.split(',');
-                        dataAux.push({timestamp:parseFloat(dataAnalysis[7]), time: parseFloat(dataAnalysis[1]),timeA:parseFloat(dataAnalysis[2]), esc: dirname.split("ans")[1].split("/")[0], window: parseFloat(dataAnalysis[4])});
+                if(!filename.includes("harvest")){
+                    fs.readFile(dirname + filename, 'utf-8', function (err, content) {
+                        if (err) {
+                            console.log(err)
+                            return;
+                        }
+                        let dataESC = content.split('\n');
+                        dataESC.shift();
+                        dataESC.pop();
+                        dataESC.forEach(function (element) {
+                            let dataAnalysis = element.split(',');
+                            dataAux.push({timestamp:parseFloat(dataAnalysis[14]), time: parseFloat(dataAnalysis[1]),timeA:parseFloat(dataAnalysis[2]), esc: dirname.split("ans")[1].split("/")[0], window: parseFloat(dataAnalysis[4])});
+                        });
+                        resolve(dataAux);
                     });
-                    resolve(dataAux);
-                });
+                }
             });
         });
     });

@@ -31,23 +31,18 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     // Get the network (channel) our contract is deployed to.
     const network = await gateway.getNetwork('escchannel');
     const agreement = req.agreement.value
-    let aux = "governify" + agreement
+    let aux = agreement
     let aux2 = ""
+    // Agreement fitted to the contract name, this should be changed in the future
     if (agreement === "oti_gc_ans") {
       aux2 = "queryDataCalculation"
     }else if(agreement === "oti_gc_ans1"){
       aux2 = "queryDataCalculation1"
-    }else if(agreement === "oti_gc_ans2"){
-      aux2 = "queryDataCalculation3"
-    }else if(agreement === "oti_gc_ans3"){
-      aux2 = "queryDataCalculation4"
-    }else if(agreement === "oti_gc_ans4"){
-      aux2 = "queryDataCalculation5"
     }else{
       aux2 = "queryDataCalculation2"
     }
     let contract = network.getContract(aux);
-    //Hacer evaluateTransaction en vez del submit para hacer queries, el submit es mas para escribir
+    // In order to make a query, we need to use evaluateTransaction instead of submitTransaction
     // var result = await contract.evaluateTransaction('queryData',1);
     // console.log(result.toString())
     var result = await contract.evaluateTransaction(aux2,1);

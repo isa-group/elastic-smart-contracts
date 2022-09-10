@@ -6,7 +6,7 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
   const fs = require('fs');
   const path = require('path');
   require('dotenv').config()
-  const file = "governify" + req.undefined.value.agreement.id
+  const file = req.undefined.value.agreement.id
   const command = "echo " + process.env.SUDOPASSWORD + " | sudo -S "
 
   function os_func() {
@@ -29,7 +29,10 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
   const agreement = dt.undefined.value.agreement
   const metricQueries = dt.undefined.value.metricQueries;
 
-  fse.copy(path.join(__dirname ,"../esc/governifyoti_gc_ansX"),path.join(__dirname, "../esc",file), function (err) {
+  const agreementName = file.replace(/[\d\.]+$/, '');
+
+  // Create the new agreement based on the agreement template
+  fse.copy(path.join(__dirname ,`../esc/${agreementName}X`),path.join(__dirname, "../esc",file), function (err) {
     if (err) {
       console.error(err);
     } else {
@@ -41,7 +44,12 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
             message: 'Server Error'
           })
         } else {
-          const idESC = file.replace("governifyoti_gc_ans", "")
+
+          // Modify the agreement template with the new agreement data
+
+          const regAux = new RegExp(agreementName + "X", "g");
+
+          const idESC = file.replace(agreementName, "")
 
           let resultESC = data.replace(/createData"/g, "createData" + idESC + '"').
           replace(/queryDataCalculation"/g, "queryDataCalculation" + idESC + '"').
@@ -50,7 +58,7 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
           replace(/analysis"/g, "analysis" + idESC + '"').
           replace(/evaluateHistory"/g, "evaluateHistory" + idESC + '"').
           replace(/evaluateFrequency"/g, "evaluateFrequency" + idESC + '"').
-          replace(/governifyoti_gc_ansX/g, file);
+          replace(regAux, file);
 
           fs.writeFile(path.join(__dirname, "../esc", file, "index.js"), resultESC, 'utf8', function (err3) {
             if (err3){

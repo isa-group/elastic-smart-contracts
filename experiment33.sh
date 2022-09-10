@@ -6,7 +6,11 @@ sleep 30
 curl "http://localhost:5400/api/v6/setUpAccountableRegistry/oti_gc_ans1"
 sleep 300
 curl "http://localhost:5400/api/v6/setUpAccountableRegistry/oti_gc_ans2"
+sleep 300
+curl "http://localhost:5400/api/v6/setUpAccountableRegistry/oti_gc_ans3"
 sleep 1200
+curl -X DELETE "http://localhost:5900/api/v1/stop/oti_gc_ans3"
+sleep 300
 curl -X DELETE "http://localhost:5900/api/v1/stop/oti_gc_ans2"
 sleep 300
 curl -X DELETE "http://localhost:5900/api/v1/stop/oti_gc_ans1"

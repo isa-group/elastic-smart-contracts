@@ -9,9 +9,7 @@
 const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
-const csv = require('csvtojson');
 const governify = require('governify-commons');
-const Logger = require('governify-commons/logger');
 const logger = governify.getLogger().tag('index');
 const getDirName = require('path').dirname;
 
@@ -108,8 +106,7 @@ async function harvesterListener(esc) {
 
         if (event.type === 'analysis'){
 
-            let end = process.hrtime(config[esc].timeStampInitAnalysis[event.info[0][0]]);
-            let analysisTime = ((end[0]* 1000000000 + end[1]) / 1000000) / 1000;
+            let analysisTime = (Date.now() - config[esc].timeStampInitAnalysis[event.info[0][0]]) / 1000;
 
             avgExecTime += analysisTime/config[esc].frequencyControlCalculate;
             controlCount++;
@@ -118,6 +115,8 @@ async function harvesterListener(esc) {
                 if(!config[esc].analysisTransactionTimesHistory[event.info[0][0]]){
                     config[esc].analysisTransactionTimesHistory[event.info[0][0]] = avgExecTime;
                 }
+
+                // Average of the last 5 analysis transactions is calculated to apply elasticity
                 let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numbeOfTimesForAnalysisAvg);
                 let avgLastFiveTimes = lastFiveTimes.reduce((a,b) => a+b,0)/lastFiveTimes.length;
 
@@ -188,7 +187,6 @@ function updateDataListener(esc) {
  * @param {object} newData - The new data to introduce in the blockchain or temporarely hold to introduce it later.
  */
 function harvesterHook(params, newData, esc) {
-    //if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
         try {
 
             config[esc].data.push(newData);
@@ -205,13 +203,14 @@ function harvesterHook(params, newData, esc) {
                 params.collectorRequestTime = newData.collectorRequestTime;
 
                 async function hookData(){
-                    console.log("HAR")
-                    console.log(config[esc].flag)
+                    //Check if another transaction is taking place
                     if(config[esc].flag.length == 0){
                         clearInterval (check);
+                        //Set flag to indicate that a transaction is taking place
                         config[esc].flag.push("harvest")
                         params.updateDataID = config[esc].updateDataCounter;
                         config[esc].timeStampInitUpdateData[config[esc].updateDataCounter] = Date.now();
+                        //Submit update data transaction
                         contract[esc].submitTransaction(config[esc].updateDataContract, JSON.stringify(params)).then(() => {
                             config[esc].flag.pop();
                             config[esc].updateDataCounter++;
@@ -221,6 +220,7 @@ function harvesterHook(params, newData, esc) {
                             logger.error(err)
                         });
                     }else{
+                        // Retry update data transaction submission if another transaction is taking place
                         logger.error("FAILED " + config[esc].hookDataFailCounter)
                         config[esc].hookDataFailCounter++;
                         if(config[esc].hookDataFailCounter > 10){
@@ -239,7 +239,6 @@ function harvesterHook(params, newData, esc) {
         } catch (error) {
             console.error(`Failed to submit transaction: ${error}`);
         }
-    //}
 }
 
 /**
@@ -284,7 +283,7 @@ async function analyser(params,esc) {
     
             event = event.payload.toString();
             event = JSON.parse(event); 
-    
+
             if (event.type === 'analysis'){
     
                 config[esc].dataTimeLimit = event.timeData;
@@ -296,23 +295,21 @@ async function analyser(params,esc) {
                     }
     
                     logger.info(esc +': An analysis has been executed with a duration of ' + event.execDuration + ' ms');
-                    console.log(event.totalDataStoredList[j]);
                     
-                    let end = process.hrtime(config[esc].timeStampInitAnalysis[event.info[0][0]]);
-                    let analysisTime = ((end[0]* 1000000000 + end[1]) / 1000000) / 1000;
-                    console.log(analysisTime);
+                    let end = Date.now()
+                    let analysisTime = (end - config[esc].timeStampInitAnalysis[event.info[0][0]])/1000;
+
                     if(!config[esc].analysisTransactionTimesHistory[event.info[0][0]]){
                         config[esc].analysisTransactionTimesHistory[event.info[0][0]] = analysisTime;
                     }
-                    let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numbeOfTimesForAnalysisAvg);
-                    let avgLastFiveTimes = lastFiveTimes.reduce((a,b) => a+b,0)/lastFiveTimes.length;
 
-                    csvBody[esc] += `${event.analysisList[j] + 1},${avgLastFiveTimes},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].hookDataFailCounter},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${Date.now()}`;
+                    // Add analysis info to the csv body
+                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].hookDataFailCounter},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${Date.now()}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
                     }
-                    if(avgLastFiveTimes > 0){
-                        config[esc].execTimes.push(avgLastFiveTimes);
+                    if(analysisTime > 0){
+                        config[esc].execTimes.push(analysisTime);
                     }  
                     
                     csvBody[esc] += `\n`
@@ -323,12 +320,9 @@ async function analyser(params,esc) {
         });
 
         setTimeout(() => {
-            console.log("ANALYSIS STARTED")
             intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
 
             async function intAnalysis (){
-                console.log(ESCnumber.counter);
-                //if((ESCnumber.counter == config[esc].numberOfESCs && config[esc].coldStart) || !config[esc].coldStart){
                     config[esc].calculationDates.push(fromDate);
                     params.timeData = config[esc].dataTimeLimit;
                     params.fromDates = JSON.stringify(config[esc].calculationDates);
@@ -342,13 +336,13 @@ async function analyser(params,esc) {
                         clearInterval(intervalCalculate[esc]);
                         intervalCalculate[esc] = setInterval(intAnalysis, config[esc].analysisFrequency*1000);
                     }
-                //}
                 fromDate += config[esc].analysisFrequency*1000;
             }
 
             setTimeout(() => {
                 clearInterval(intervalCalculate[esc]);
             }, config[esc].executionTime*1000 + 500);
+
         }, config[esc].analysisStartDelay * 1000);
 
 
@@ -384,11 +378,7 @@ async function analyser(params,esc) {
             // });
             return true;
         }, config[esc].executionTime*1000 + 10000);
-
-
         
-
-
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
     }
@@ -409,16 +399,18 @@ async function analysis(params,esc,analysisID) {
             params.analysisID = analysisID.toString();
             // Submit the specified transaction.
             let check = setInterval (async function(){
-                console.log("ANA")
-                console.log(config[esc].flag)
+                //Check if another transaction is taking place
                 if(config[esc].flag.length == 0){
                     clearInterval (check);
+                    // Set the flag to indicate that a transaction is taking place
                     config[esc].flag.push("analysis");
-                    config[esc].timeStampInitAnalysis[analysisID] = process.hrtime();
+                    config[esc].timeStampInitAnalysis[analysisID] = Date.now();
+                    // Submit analysis transaction
                     await contract[esc].submitTransaction(config[esc].analysisContract, JSON.stringify(params));
                     config[esc].flag.pop();
                     resolve();
                 }else{
+                    // Retry analysis transaction submission if another transaction is taking place
                     config[esc].analysisFailCounter[analysisID]++;
                     if(config[esc].analysisFailCounter[analysisID] > 10){
                         clearInterval (check);

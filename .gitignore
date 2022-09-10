@@ -5,6 +5,7 @@ bin
 ESC_network/main/test.js
 ESC_network/main/query.js
 .env
+logs
 
 *.pyc
 
