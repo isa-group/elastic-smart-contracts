@@ -117,7 +117,7 @@ async function harvesterListener(esc) {
                 }
 
                 // Average of the last 5 analysis transactions is calculated to apply elasticity
-                let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numbeOfTimesForAnalysisAvg);
+                let lastFiveTimes = config[esc].analysisTransactionTimesHistory.slice(-config[esc].numberOfTimesForAnalysisAvg);
                 let avgLastFiveTimes = lastFiveTimes.reduce((a,b) => a+b,0)/lastFiveTimes.length;
 
                 try{

@@ -31,7 +31,7 @@ let config = {
   numberOfESCs: 2,
   dataPerHarvest: 10,
   analysisRetryTime: 500,
-  numbeOfTimesForAnalysisAvg: 5,
+  numberOfTimesForAnalysisAvg: 5,
 
     
   updateDataContract: "updateData",
