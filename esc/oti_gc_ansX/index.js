@@ -28,7 +28,7 @@ let config = {
   elasticityMode: "noElasticity",
   experimentName: "test",
   coldStart: false,
-  numberOfESCs: 2,
+  numberOfESCs: 16,
   dataPerHarvest: 10,
   analysisRetryTime: 500,
   numberOfTimesForAnalysisAvg: 5,

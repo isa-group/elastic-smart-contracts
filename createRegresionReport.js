@@ -3,8 +3,8 @@ var fs = require('fs');
 const getDirName = require('path').dirname;
 
 var counter = [];
-const ESCsNumber = 2;
-const experimentID = 102;
+const ESCsNumber = 4;
+const experimentID = 103;
 
 for (var t = 1; t <= ESCsNumber; t++) {
     counter.push(t)
@@ -47,7 +47,7 @@ function readFiles(dirname) {
 let promises = []
 counter.forEach(async function (elmnt) {
     i = elmnt;
-    promises.push(readFiles('./experiments_results/' + experimentID + '/governifyoti_gc_ans' + i + '/'));
+    promises.push(readFiles('./experiments_results/' + experimentID + '/oti_gc_ans' + i + '/'));
 });
 
 Promise.all(promises).then(function (data) {

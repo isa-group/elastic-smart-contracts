@@ -6,7 +6,7 @@ var data = [];
 var intervals = [];
 var counter = [];
 const ESCsNumber = 4;
-const experimentID = 78;
+const experimentID = 103;
 
 for (var t = 1; t <= ESCsNumber; t++) {
     counter.push(t)
@@ -64,7 +64,7 @@ function readFiles(dirname) {
 
 counter.forEach(async function (elmnt) {
     i = elmnt;
-    let data = await readFiles('./experiments_results/' + experimentID + '/governifyoti_gc_ans' + i + '/')
+    let data = await readFiles('./experiments_results/' + experimentID + '/oti_gc_ans' + i + '/')
     if(data){
         let timesCsvBody = "TIMESTAMP,MIN_TIME,MAX_TIME,MEAN_TIME,STDEV_TIME,MIN_TIME_A,MAX_TIME_A,MEAN_TIME_A,STDEV_TIME_A,MIN_WIN,MAX_WIN,MEAN_WIN,STDEV_WIN\n";
         let count = 0;

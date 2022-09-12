@@ -32,13 +32,8 @@ module.exports.guarantee = async function guarantee(req, res, next) {
     // Get the network (channel) our contract is deployed to.
     const network = await gateway.getNetwork('escchannel');
     let aux = req.agreement.value
-    let aux2 = ""
-    // Agreement fitted to the contract name, this should be changed in the future
-    if (req.guarantee.value === "Tiempo_total_peticion" || req.guarantee.value === "Iteraciones_cierre_temporal") {
-      aux2 = "queryDataCalculation"
-    }else{
-      aux2 = "queryDataCalculation2"
-    }
+    let aux2 = "queryDataCalculation"
+
     let contract = network.getContract(aux);
     var result = await contract.evaluateTransaction(aux2,1);
     const responses = JSON.parse(result.toString())
