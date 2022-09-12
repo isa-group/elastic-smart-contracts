@@ -1,0 +1,135 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Accountable Registry
+  description: >-
+    This is an OpenAPI Specification created by oas-wizard
+    (https://github.com/pafmon/oas-wizard)  
+  contact:
+    name: PabloFM
+    email: pablofm@us.es
+    url: 'http://www.isa.us.es'
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+paths:
+  '/api/v1/startup':
+    post:
+      description: Startup network
+      operationId: startup
+      responses:
+        '200':
+          description: Network started up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/shutdown':
+    post:
+      description: Shut down network
+      operationId: shutdown
+      responses:
+        '200':
+          description: Network shut down
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/setUp/{agreement}':
+    post:
+      description: Set the agreement up
+      operationId: setUpAgreement
+      parameters:
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement to set up.
+          schema:
+            type : string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/queries'
+      responses:
+        '200':
+          description: Agreement Set up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/stop/{agreement}':
+    delete:
+      description: Stop and delete the agreement
+      operationId: stopAgreement
+      parameters:
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement to set up.
+          schema:
+            type : string
+      responses:
+        '200':
+          description: Agreement Set up
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/guarantees/{agreement}/{guarantee}':
+    get:
+      description: Get guarantee state of the agreement
+      operationId: guarantee
+      parameters:
+        - name: guarantee
+          in: path
+          required: true
+          description: Guarantee to get.
+          schema:
+            type : string
+        - name: agreement
+          in: path
+          required: true
+          description: Agreement's guarantee
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Guarantee collected
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+components:
+  schemas:
+    errorModel:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    elementsID:
+      type: string
+    queries:
+      type: object
+      properties:
+        guaranteeID:
+          type: string
+        collector:
+          type: string

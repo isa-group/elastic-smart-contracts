@@ -20,6 +20,7 @@
         "fabric-ca-client": "^2.1.1",
         "fabric-network": "^2.1.1",
         "jsdoc": "^3.6.6",
+        "mkdirp": "^1.0.4",
         "postman-request": "^2.88.1-postman.23",
         "protobufjs": "^6.9.0",
         "protobufs": "^0.1.0",

@@ -7,14 +7,18 @@ set -e
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 
-# launch network; create channel and join peer to channel
+
+# clean out any old identites in the wallets
+rm -rf esc_core/wallet/*
+
+# shut down network
 pushd ./network
-./init.sh up createChannel -ca -s couchdb
+./init.sh down
 
 popd
 
 cat <<EOF
 
-Total setup execution time : $(($(date +%s) - starttime)) secs ...
+Shut down...
 
 EOF
