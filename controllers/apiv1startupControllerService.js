@@ -3,7 +3,6 @@
 module.exports.startup = function startup(req, res, next) {
   const { exec } = require('child_process');
   require('dotenv').config()
-  const command = "echo " + process.env.SUDOPASSWORD + " | sudo -S "
 
 
   function os_func() {
@@ -22,7 +21,7 @@ module.exports.startup = function startup(req, res, next) {
     }
     var os = new os_func();
   
-      return os.execCommand(command + "./init.sh").then(result1=> {
+      return os.execCommand("./init.sh").then(result1=> {
         res.send({
           code: 200,
           message: 'Network started up'

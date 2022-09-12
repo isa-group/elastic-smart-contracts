@@ -3,7 +3,6 @@
 module.exports.shutdown = function shutdown(req, res, next) {
   const { exec } = require('child_process');
   require('dotenv').config()
-  const command = "echo " + process.env.SUDOPASSWORD + " | sudo -S "
 
 
   function os_func() {
@@ -22,7 +21,7 @@ module.exports.shutdown = function shutdown(req, res, next) {
     }
     var os = new os_func();
   
-    return os.execCommand(command + "./stop.sh").then(result=> {
+    return os.execCommand("./stop.sh").then(result=> {
       res.send({
         code: 200,
         message: 'Network has been shut down'

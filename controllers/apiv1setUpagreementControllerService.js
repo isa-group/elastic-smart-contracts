@@ -7,7 +7,6 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
   const path = require('path');
   require('dotenv').config()
   const file = req.undefined.value.agreement.id
-  const command = "echo " + process.env.SUDOPASSWORD + " | sudo -S "
 
   function os_func() {
     this.execCommand = function (cmd) {
@@ -96,7 +95,7 @@ module.exports.setUpAgreement = async function setUpAgreement(req, res, next) {
                         message: 'Server Error'
                       })
                     } else {
-                      os.execCommand(command + "./setup2.sh " + file).then(result3=> {
+                      os.execCommand("./setup2.sh " + file).then(result3=> {
                         console.log("Agreement set up")
                         res.send({
                           code: 200,
