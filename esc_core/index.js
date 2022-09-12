@@ -313,10 +313,8 @@ async function analyser(params,esc) {
                     }  
                     
                     csvBody[esc] += `\n`
-                }                 
-         
-            }   
-           
+                }                        
+            }           
         });
 
         setTimeout(() => {

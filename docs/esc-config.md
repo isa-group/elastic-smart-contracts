@@ -32,8 +32,8 @@ o to [**elastic-smart-contracts/esc-template/**](https://github.com/isa-group/el
   - **numberOfTimesForAnalysisAvg**: number of last analysis time executions used to calculate the average time that will be used to evaluate the elasticity.
     
   - **updateDataContract**: name of the contract responsible for uploading new data to the Blockchain.
-  - **evaluateHistoryContract**: name of the contract responsible for evaluating the time window of data to apply elasticity if necessary.
-  - **evaluateFrequencyContract**: name of the contract responsible for evaluating the frequency to apply elasticity if necessary.
+  - **evaluateWindowTimeContract**: name of the contract responsible for evaluating the time window of data to apply elasticity if necessary.
+  - **evaluateHarvestFrequencyContract**: name of the contract responsible for evaluating the frequency to apply elasticity if necessary.
   - **queryAnalysisHolderContract**: name of the contract responsible for querying the Blockchain and returning the calculation storage.
   - **analysisHolderId**: Id of the calculation storage.
   - **analysisContract**: name of the contract responsible for analysing the data.
@@ -67,8 +67,8 @@ There is a function `hookData` in which the retrieval of new data is defined. Th
     experimentName: "test2",
         
     updateDataContract: "updateData",
-    evaluateHistoryContract: "evaluateHistory",
-    evaluateFrequencyContract: "evaluateFrequency",
+    evaluateWindowTimeContract: "evaluateHistory",
+    evaluateHarvestFrequencyContract: "evaluateFrequency",
     queryAnalysisHolderContract: "queryStreetFlows",
     analysisHolderId: 1,
     analysisContract: "analysis",
