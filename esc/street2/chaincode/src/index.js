@@ -189,7 +189,7 @@ class traffic_flow_street2 extends Contract {
             totalDuration = 0;
         }
 
-        let info = [bySectionEvent, totalEvent];
+        let info = [totalDuration, bySectionEvent, totalEvent];
 
         let event = {
             execDuration: totalDuration,

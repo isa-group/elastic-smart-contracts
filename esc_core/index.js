@@ -9,8 +9,6 @@
 const { Gateway, Wallets, } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
-const governify = require('governify-commons');
-const logger = governify.getLogger().tag('index');
 const getDirName = require('path').dirname;
 
 var gateway = {};
@@ -146,7 +144,7 @@ async function harvesterListener(esc) {
                         }
                         
                         if(newTime > 0 && newTime >= config[esc].analysisFrequency && newTime != config[esc].harvestFrequency){
-                            logger.info(esc +": New Harvest Frequency: " + newTime);
+                            console.log(esc +": New Harvest Frequency: " + newTime);
                             config[esc].changeFrequency = {change: true, newFrequency: newTime}
                             config[esc].harvestFrequency = newTime;
 
@@ -214,22 +212,20 @@ function harvesterHook(params, newData, esc) {
                         contract[esc].submitTransaction(config[esc].updateDataContract, JSON.stringify(params)).then(() => {
                             config[esc].flag.pop();
                             config[esc].updateDataCounter++;
-
-                            logger.info(esc +': Data submitted to the blockchain');
+                            console.log(esc +': Data submitted to the blockchain');
                         }).catch((err)=> {
-                            logger.error(err)
+                            console.log(err)
                         });
                     }else{
                         // Retry update data transaction submission if another transaction is taking place
-                        logger.error("FAILED " + config[esc].hookDataFailCounter)
+                        console.log("FAILED " + config[esc].hookDataFailCounter)
                         config[esc].hookDataFailCounter++;
                         if(config[esc].hookDataFailCounter > 10){
                             clearInterval (check);
                             config[esc].hookDataFailCounter = 0;
-                            logger.error(esc +": Hook data transaction failed");
-                            resolve();
+                            console.log(esc +": Hook data transaction failed");
                         }else{
-                            logger.info(esc +": Another transaction is currently running, retrying hook...");
+                            console.log(esc +": Another transaction is currently running, retrying hook...");
                         }
                     }
                 }
@@ -294,7 +290,7 @@ async function analyser(params,esc) {
                         config[esc].countCalculationsOverMax++;
                     }
     
-                    logger.info(esc +': An analysis has been executed with a duration of ' + event.execDuration + ' ms');
+                    console.log(esc +': An analysis has been executed with a duration of ' + event.execDuration + ' ms');
                     
                     let end = Date.now()
                     let analysisTime = (end - config[esc].timeStampInitAnalysis[event.info[0][0]])/1000;
@@ -304,7 +300,7 @@ async function analyser(params,esc) {
                     }
 
                     // Add analysis info to the csv body
-                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].hookDataFailCounter},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${Date.now()}`;
+                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${event.info[0][0]}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
                     }
@@ -325,7 +321,7 @@ async function analyser(params,esc) {
                     params.timeData = config[esc].dataTimeLimit;
                     params.fromDates = JSON.stringify(config[esc].calculationDates);
                     params.frequency = config[esc].harvestFrequency;
-                    logger.info(esc +": Launching analysis transaction");
+                    console.log(esc +": Launching analysis transaction");
                     let analysisID = config[esc].initialTimeCounter
                     config[esc].initialTimeCounter++;
                     await analysis(params,esc,analysisID);
@@ -347,11 +343,11 @@ async function analyser(params,esc) {
         csvTimeout[esc] = setTimeout(async () => {
             //contract[esc].removeContractListener(listener);
             fs.mkdir(getDirName(resultFile), { recursive: true}, function (err) {
-                if (err) logger.error(err);
+                if (err) console.log(err);
                 fs.writeFileSync(resultFile, csvBody[esc],'utf8');
             });
             fs.mkdir(getDirName(resultFileHarvest), { recursive: true}, function (err) {
-                if (err) logger.error(err);
+                if (err) console.log(err);
                 fs.writeFileSync(resultFileHarvest, csvBodyHarvest[esc],'utf8');
             });
             //gateway[esc].disconnect();
@@ -413,10 +409,10 @@ async function analysis(params,esc,analysisID) {
                     if(config[esc].analysisFailCounter[analysisID] > 10){
                         clearInterval (check);
                         config[esc].analysisFailCounter[analysisID] = 0;
-                        logger.error(esc +": Analysis transaction failed");
+                        console.log(esc +": Analysis transaction failed");
                         resolve();
                     }else{
-                        logger.info(esc +": Another transaction is currently running, retrying...");
+                        console.log(esc +": Another transaction is currently running, retrying...");
                     }
                 }
             },config[esc].analysisRetryTime);

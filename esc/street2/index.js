@@ -9,19 +9,27 @@ let config = {
   identityName: "admin",
   channelName: "escchannel",
   chaincodeName: "street2",
-  csvResultsCalculationsHeader: "NUMBER_DETECTIONS,TOTAL_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME,CARS_PER_SECOND_BY_SENSOR,CARS_PER_SECOND_TOTAL\n",
+  csvResultsCalculationsHeader: "NUMBER_DETECTIONS,ANALYSIS_TIME,FREQUENCY,TIME_DATA,FREQUENCY_DATA,DETECTIONS_STORED,FROM_DATE,TO_DATE,MINIMUM_TIME,MAXIMUM_TIME\n",
   csvResultsExperimentHeader: "FREQUENCY,TIME_DATA,MIN_TIME,MAX_TIME,AVG_TIME,STD_TIME,SUCCESFUL_CALCULATIONS,CALCULATIONS_OVER_MAX\n",
+  csvResultsHarvestHeader: "INIT_TIME,FINAL_TIME,TOTAL_TIME,INIT_UPDATE_TIME,FINAL_UPDATE_TIME,TOTAL_UPDATE_TIME,COLLECTOR_TIME,\n",
 
 
-  executionTime: 60,
-  analysisFrequency: 5,
-  harvestFrequency: 1,
+  executionTime: 100,
+  analysisFrequency: 10,
+  harvestFrequency: 10,
+  analysisStartDelay: 5,
+  harvestStartDelay: 0,
   dataTimeLimit: 30,
   frequencyControlCalculate: 5,
   maximumTimeAnalysis: 100,
   minimumTimeAnalysis: 50,
   elasticityMode: "timeWindow",
   experimentName: "test2",
+  coldStart: false,
+  numberOfESCs: 1,
+  dataPerHarvest: 1,
+  analysisRetryTime: 1000,
+  numberOfTimesForAnalysisAvg: 1,
     
   updateDataContract: "updateData2",
   evaluateWindowTimeContract: "evaluateWindowTime2",
@@ -62,10 +70,10 @@ const argv = yargs
 async function intervalHarvester(frequency) {
 
   if(config.elasticityMode == "harvestFrequency"){
-    ESC.frequencyChanged();
+    ESC.frequencyChanged(config.chaincodeName);
     let interval = await setInterval(() => {
   
-      ESC.getNewFrequency().then((res) =>{
+      ESC.getNewFrequency(config.chaincodeName).then((res) =>{
   
         if(res.change){
   
@@ -80,7 +88,7 @@ async function intervalHarvester(frequency) {
   
           let newData = hookData();
   
-          ESC.harvesterHook(harvesterHookParams, newData);
+          ESC.harvesterHook(harvesterHookParams, newData, config.chaincodeName);
         }
       })
       
@@ -90,7 +98,7 @@ async function intervalHarvester(frequency) {
     
       let newData = hookData();
   
-      ESC.harvesterHook(harvesterHookParams, newData);
+      ESC.harvesterHook(harvesterHookParams, newData, config.chaincodeName);
   
     }, frequency*1000);
   
@@ -104,7 +112,7 @@ async function intervalHarvester(frequency) {
 
 if (argv._.includes('start')) {
 
-  ESC.configurate(config)
+  ESC.configurate(config, config.chaincodeName)
 
   var stop = false;
   var initialTime = Date.now()
@@ -121,12 +129,12 @@ if (argv._.includes('start')) {
     }
   });
 
-  ESC.connect().then(() =>{
+  ESC.connect(config.chaincodeName).then(() =>{
 
 
-    ESC.analyser(analyserParams);
+    ESC.analyser(analyserParams, config.chaincodeName);
   
-    ESC.harvesterListener();
+    ESC.harvesterListener(config.chaincodeName);
   
   
   
