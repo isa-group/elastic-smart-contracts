@@ -20,7 +20,7 @@ let pro = new Promise((res,rej) => {
     fs.readdir(dir,(err,files) => {
         intersection= files.includes('intersection')
         paths= paths.concat(files.filter((path)=> {
-           return (path !== "intersection");
+           return (path !== "intersection" && path !== "street1" && path !== "street2" && path !== ".DS_Store" );
         }))
         res(true)   
     })
