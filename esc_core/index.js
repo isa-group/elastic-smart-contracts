@@ -300,7 +300,7 @@ async function analyser(params,esc) {
                     }
 
                     // Add analysis info to the csv body
-                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${event.info[0][0]}`;
+                    csvBody[esc] += `${event.analysisList[j] + 1},${analysisTime},${event.execDuration/1000},${config[esc].analysisFrequency},${event.timeData},${event.frequencyData},${event.totalDataStoredList[j]},${event.fromDates[j]},${event.fromDates[j] - (1000*event.timeData)},${config[esc].minimumTimeAnalysis},${config[esc].maximumTimeAnalysis},${ESCnumber.counter},${config[esc].analysisFailCounter[event.info[0][0]]},${config[esc].hookDataFailCounter},${config[esc].timeStampInitAnalysis[event.info[0][0]]},${Date.now()}`;
                     for (let i = 0; i < event.info.length; i++) {
                         csvBody[esc] += `,${event.info[i][j]}`
                     }
