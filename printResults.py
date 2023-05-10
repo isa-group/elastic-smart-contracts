@@ -6,6 +6,7 @@ import base64, re, shutil
 import matplotlib  
 matplotlib.use('TkAgg')   
 import matplotlib.pyplot as plt 
+import matplotlib.dates as mdates
 
 # -------------------------------
 # Read file
@@ -207,16 +208,18 @@ def generateComparativeGraphic(numberESC, agreementsList, keyGraphic):
         data = agreements[agreementId]['dataFile']
         for i in range(len(data["INIT_EXEC_TIME"])):
             currentTimestamp = datetime.fromtimestamp(int(data["INIT_EXEC_TIME"][i])/1000)
-            data["INIT_EXEC_TIME"][i] = currentTimestamp.strftime("%H:%M:%S")
+            #data["INIT_EXEC_TIME"][i] = currentTimestamp.strftime("%H:%M:%S")
+            data["INIT_EXEC_TIME"][i] = currentTimestamp
         for i in range(len(data[keyGraphicAux])):
             data[keyGraphicAux][i] = float(data[keyGraphicAux][i])
-
+        xTimes = matplotlib.dates.date2num((data["INIT_EXEC_TIME"]))
         marker = availableMarkers[counter]
-        ax.scatter(data["INIT_EXEC_TIME"], data[keyGraphicAux], marker = marker, label=agreementId)
-        ax.plot(data["INIT_EXEC_TIME"], data[keyGraphicAux])
+        ax.scatter(xTimes, data[keyGraphicAux], marker = marker, label=agreementId)
+        ax.plot(xTimes, data[keyGraphicAux])
         # Update counter for new marker
         counter = 0 if numberESC-1 == counter else counter + 1
     
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
     ax.legend(loc="upper right")
     ax.title.set_text("{} (s)".format(keyGraphic))
     fig.autofmt_xdate()
