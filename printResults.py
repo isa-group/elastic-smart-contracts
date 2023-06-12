@@ -167,6 +167,8 @@ def generateAgreementGraphic(agreementId, agreementObj):
         data["MINIMUM_TIME"][i] = float(data["MINIMUM_TIME"][i])
     for i in range(len(data["FREQUENCY_DATA"])):
         data["MAXIMUM_TIME"][i] = float(data["MAXIMUM_TIME"][i])
+    for i in range(len(data["TIME_DATA"])):
+        data["TIME_DATA"][i] = float(data["TIME_DATA"][i])
 
     fig, ax = plt.subplots()
     ax.bar(data["ID"], data["TOTAL_TIME"], align='center', label="Total time (s)", width=0.4, color='green')
@@ -177,8 +179,10 @@ def generateAgreementGraphic(agreementId, agreementObj):
 
     ax2 = ax.twinx()
     color = 'red'
-    g4 = ax2.plot(data["ID"], data["FREQUENCY_DATA"], label="Frequency (s)", color=color)
-    ax2.set_ylabel('Frequency (s)', color=color)
+    label = 'Frequency (s)' if elasticityType == 'harvestFrequency' else 'Time Window (s)'
+    yData = data["FREQUENCY_DATA"] if elasticityType == 'harvestFrequency' else data["TIME_DATA"]
+    g4 = ax2.plot(data["ID"], yData, label=label, color=color)
+    ax2.set_ylabel(label, color=color)
     ax2.tick_params(axis='y')
 
     ax.legend(loc="upper right")
@@ -262,7 +266,8 @@ def main(argv):
     inputfolder = ''
     global experimentNumber
     global agreementName
-    opts, args = getopt.getopt(argv,"h:e:a:",["expnum=","agreement="])
+    global elasticityType
+    opts, args = getopt.getopt(argv,"h:e:a:t:",["expnum=","agreement=","elasticityType="])
     for opt, arg in opts:
         if opt == '-h':
             print ('printResults.py -e <experiment number>')
@@ -271,6 +276,8 @@ def main(argv):
             experimentNumber = arg
         elif opt in ("-a", "--agreement"):
             agreementName = arg
+        elif opt in ("-t", "--elasticityType"):
+            elasticityType = arg
     fullPath = os.path.dirname(os.path.abspath(__file__))
     pathFolder = fullPath + '/'+"experiments/runs/{0}/".format(experimentNumber)
     print('Experiment number: {0}\nAgreement: {2}\nPath folder: {1}'.format(experimentNumber, pathFolder, agreementName))
@@ -297,7 +304,7 @@ def main(argv):
     comparativeGraphics = {}
     headersJoined, dataJoined = readFile(joinedFilePath)
     #keyGraphics = ['Total Time','Analysis Time', 'Time Data', 'Frequency Data']
-    keyGraphics = ['Total Time','Analysis Time', 'Time Data']
+    keyGraphics = ['Total Time','Time Data', 'Analysis Time', 'Frequency Data']
     for key in keyGraphics:
         base64graphicComparative = generateComparativeGraphic(totalNumberESC, agreements, key)
         comparativeGraphics[key] = base64graphicComparative
